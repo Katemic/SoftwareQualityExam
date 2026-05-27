@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace LibrarySQLBackend.Models;
 
 [Table("item")]
+[Index("MediaType", Name = "idx_item_media_type")]
+[Index("Name", Name = "idx_item_name")]
 [Index("LanguageId", Name = "language_id_idx")]
 [Index("PublisherId", Name = "publisher_id_idx")]
 public partial class Item
@@ -16,23 +18,22 @@ public partial class Item
     public int Id { get; set; }
 
     [Column("name")]
-    [StringLength(100)]
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     [Column("release_year")]
-    public int? ReleaseYear { get; set; }
+    public short? ReleaseYear { get; set; }
 
-    [Column("description", TypeName = "mediumtext")]
+    [Column("description", TypeName = "text")]
     public string? Description { get; set; }
 
-    [Column("review_summary", TypeName = "mediumtext")]
+    [Column("review_summary", TypeName = "text")]
     public string? ReviewSummary { get; set; }
 
     [Column("media_type", TypeName = "enum('book','boardgame')")]
-    public string? MediaType { get; set; }
+    public string MediaType { get; set; } = null!;
 
     [Column("image")]
-    [StringLength(200)]
+    [StringLength(2048)]
     public string? Image { get; set; }
 
     [Column("language_id")]

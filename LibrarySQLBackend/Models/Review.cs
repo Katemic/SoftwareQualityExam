@@ -21,9 +21,9 @@ public partial class Review
 
     [Column("no_of_stars")]
     [Precision(2, 1)]
-    public decimal? NoOfStars { get; set; }
+    public decimal NoOfStars { get; set; }
 
-    [Column("text", TypeName = "mediumtext")]
+    [Column("text", TypeName = "text")]
     public string? Text { get; set; }
 
     [ForeignKey("ItemId")]

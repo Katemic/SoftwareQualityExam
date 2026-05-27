@@ -40,15 +40,11 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Tag> Tags { get; set; }
 
-    public virtual DbSet<VItemFull> VItemFulls { get; set; }
-
-    public virtual DbSet<VLoanerActiveLoan> VLoanerActiveLoans { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
-            .UseCollation("utf8mb3_general_ci")
-            .HasCharSet("utf8mb3");
+            .UseCollation("utf8mb4_0900_ai_ci")
+            .HasCharSet("utf8mb4");
 
         modelBuilder.Entity<Boardgame>(entity =>
         {
@@ -73,6 +69,8 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
+            entity.Property(e => e.Status).HasDefaultValueSql("'unpaid'");
+
             entity.HasOne(d => d.Loan).WithMany(p => p.Fines)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_fine_loan");
@@ -86,6 +84,8 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Inventory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.Status).HasDefaultValueSql("'available'");
 
             entity.HasOne(d => d.Item).WithMany(p => p.Inventories)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -189,6 +189,8 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Loaner>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.Cpr).IsFixedLength();
         });
 
         modelBuilder.Entity<Publisher>(entity =>
@@ -200,13 +202,9 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.HasOne(d => d.Item).WithMany(p => p.Reservations)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_reservation_item");
+            entity.HasOne(d => d.Item).WithMany(p => p.Reservations).HasConstraintName("fk_reservation_item");
 
-            entity.HasOne(d => d.Loaner).WithMany(p => p.Reservations)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_reservation_loaner");
+            entity.HasOne(d => d.Loaner).WithMany(p => p.Reservations).HasConstraintName("fk_reservation_loaner");
         });
 
         modelBuilder.Entity<Review>(entity =>
@@ -215,9 +213,7 @@ public partial class AppDbContext : DbContext
                 .HasName("PRIMARY")
                 .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
 
-            entity.HasOne(d => d.Item).WithMany(p => p.Reviews)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_review_item");
+            entity.HasOne(d => d.Item).WithMany(p => p.Reviews).HasConstraintName("fk_review_item");
 
             entity.HasOne(d => d.Loaner).WithMany(p => p.Reviews)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -227,16 +223,6 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Tag>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
-        });
-
-        modelBuilder.Entity<VItemFull>(entity =>
-        {
-            entity.ToView("v_item_full");
-        });
-
-        modelBuilder.Entity<VLoanerActiveLoan>(entity =>
-        {
-            entity.ToView("v_loaner_active_loans");
         });
 
         OnModelCreatingPartial(modelBuilder);

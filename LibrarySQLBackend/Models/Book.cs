@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 namespace LibrarySQLBackend.Models;
 
 [Table("book")]
-[Index("Isbn", Name = "ISBN_UNIQUE", IsUnique = true)]
 [Index("ItemId", Name = "item_id_idx", IsUnique = true)]
 public partial class Book
 {
@@ -16,11 +15,11 @@ public partial class Book
     public int Id { get; set; }
 
     [Column("ISBN")]
-    [StringLength(25)]
+    [StringLength(17)]
     public string? Isbn { get; set; }
 
     [Column("no_of_pages")]
-    public int? NoOfPages { get; set; }
+    public short? NoOfPages { get; set; }
 
     [Column("version")]
     [StringLength(45)]

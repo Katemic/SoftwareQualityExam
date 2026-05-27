@@ -21,14 +21,11 @@ public partial class Reservation
     [Column("item_id")]
     public int ItemId { get; set; }
 
-    [Column("estimated_wait")]
-    public int? EstimatedWait { get; set; }
-
     [Column("status", TypeName = "enum('pending','ready for pickup','fulfilled')")]
-    public string? Status { get; set; }
+    public string Status { get; set; } = null!;
 
     [Column("queue_number")]
-    public int? QueueNumber { get; set; }
+    public int QueueNumber { get; set; }
 
     [ForeignKey("ItemId")]
     [InverseProperty("Reservations")]

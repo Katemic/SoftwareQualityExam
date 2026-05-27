@@ -15,7 +15,7 @@ public partial class Publisher
 
     [Column("name")]
     [StringLength(70)]
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     [InverseProperty("Publisher")]
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();

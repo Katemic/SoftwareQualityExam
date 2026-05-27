@@ -82,7 +82,7 @@ namespace LibraryAPI.Services
             var item = new Item
             {
                 Name = dto.Name,
-                ReleaseYear = dto.ReleaseYear,
+                ReleaseYear = (short?)dto.ReleaseYear,
                 Description = dto.Description,
                 MediaType = dto.MediaType,
                 Image = dto.Image,
@@ -97,7 +97,7 @@ namespace LibraryAPI.Services
             ? new Book
             {
                 Isbn = dto.Book.Isbn,
-                NoOfPages = dto.Book.NoOfPages,
+                NoOfPages = (short?)dto.Book.NoOfPages,
                 Version = dto.Book.Version
             }
             : null,
@@ -130,7 +130,7 @@ namespace LibraryAPI.Services
             var mediaType = dto.MediaType?.ToLower();
 
             existingItem.Name = dto.Name;
-            existingItem.ReleaseYear = dto.ReleaseYear;
+            existingItem.ReleaseYear = (short?)dto.ReleaseYear;
             existingItem.Description = dto.Description;
             existingItem.MediaType = mediaType;
             existingItem.Image = dto.Image;
@@ -181,7 +181,7 @@ namespace LibraryAPI.Services
                 }
 
                 existingItem.Book.Isbn = dto.Book?.Isbn;
-                existingItem.Book.NoOfPages = dto.Book?.NoOfPages;
+                existingItem.Book.NoOfPages = (short?)(dto.Book?.NoOfPages);
                 existingItem.Book.Version = dto.Book?.Version;
             }
             else if (mediaType == "boardgame")

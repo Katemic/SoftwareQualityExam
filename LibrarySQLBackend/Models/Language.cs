@@ -15,7 +15,7 @@ public partial class Language
 
     [Column("language")]
     [StringLength(45)]
-    public string? Language1 { get; set; }
+    public string Language1 { get; set; } = null!;
 
     [InverseProperty("Language")]
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();

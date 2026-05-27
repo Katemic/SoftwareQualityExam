@@ -16,19 +16,19 @@ public partial class Fine
 
     [Column("amount")]
     [Precision(10, 2)]
-    public decimal? Amount { get; set; }
+    public decimal Amount { get; set; }
 
     [Column("status", TypeName = "enum('unpaid','paid','late')")]
-    public string? Status { get; set; }
+    public string Status { get; set; } = null!;
 
     [Column("created_date", TypeName = "datetime")]
-    public DateTime? CreatedDate { get; set; }
+    public DateTime CreatedDate { get; set; }
 
     [Column("paid_date", TypeName = "datetime")]
     public DateTime? PaidDate { get; set; }
 
     [Column("due_date", TypeName = "datetime")]
-    public DateTime? DueDate { get; set; }
+    public DateTime DueDate { get; set; }
 
     [Column("loan_id")]
     public int LoanId { get; set; }

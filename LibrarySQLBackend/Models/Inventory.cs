@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace LibrarySQLBackend.Models;
 
 [Table("inventory")]
-[Index("Barcode", Name = "barcode_UNIQUE", IsUnique = true)]
+[Index("ItemId", "Status", Name = "idx_inventory_item_status")]
 [Index("ItemId", Name = "item_id_idx")]
 public partial class Inventory
 {
@@ -19,14 +19,14 @@ public partial class Inventory
     public int ItemId { get; set; }
 
     [Column("status", TypeName = "enum('lost','available','loaned out')")]
-    public string? Status { get; set; }
+    public string Status { get; set; } = null!;
 
     [Column("barcode")]
-    [StringLength(45)]
-    public string? Barcode { get; set; }
+    [StringLength(128)]
+    public string Barcode { get; set; } = null!;
 
     [Column("placement")]
-    [StringLength(45)]
+    [StringLength(100)]
     public string? Placement { get; set; }
 
     [ForeignKey("ItemId")]

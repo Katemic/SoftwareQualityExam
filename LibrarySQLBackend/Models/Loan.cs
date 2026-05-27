@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace LibrarySQLBackend.Models;
 
 [Table("loan")]
+[Index("LoanerId", "Status", Name = "idx_loan_loaner_status")]
 [Index("InventoryId", Name = "inventory_id_idx")]
 [Index("LoanerId", Name = "loaner_id_idx")]
 public partial class Loan
@@ -16,16 +17,16 @@ public partial class Loan
     public int Id { get; set; }
 
     [Column("loan_date", TypeName = "datetime")]
-    public DateTime? LoanDate { get; set; }
+    public DateTime LoanDate { get; set; }
 
     [Column("due_date", TypeName = "datetime")]
-    public DateTime? DueDate { get; set; }
+    public DateTime DueDate { get; set; }
 
     [Column("return_date", TypeName = "datetime")]
     public DateTime? ReturnDate { get; set; }
 
     [Column("status", TypeName = "enum('overdue','active','returned')")]
-    public string? Status { get; set; }
+    public string Status { get; set; } = null!;
 
     [Column("loaner_id")]
     public int LoanerId { get; set; }

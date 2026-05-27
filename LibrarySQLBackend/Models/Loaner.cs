@@ -7,8 +7,6 @@ using Microsoft.EntityFrameworkCore;
 namespace LibrarySQLBackend.Models;
 
 [Table("loaner")]
-[Index("Cpr", Name = "cpr_UNIQUE", IsUnique = true)]
-[Index("Email", Name = "email_UNIQUE", IsUnique = true)]
 public partial class Loaner
 {
     [Key]
@@ -16,28 +14,28 @@ public partial class Loaner
     public int Id { get; set; }
 
     [Column("first_name")]
-    [StringLength(45)]
-    public string? FirstName { get; set; }
+    [StringLength(100)]
+    public string FirstName { get; set; } = null!;
 
     [Column("last_name")]
-    [StringLength(45)]
-    public string? LastName { get; set; }
+    [StringLength(100)]
+    public string LastName { get; set; } = null!;
 
     [Column("cpr")]
-    [StringLength(20)]
+    [StringLength(11)]
     public string? Cpr { get; set; }
 
     [Column("tlf")]
-    [StringLength(12)]
+    [StringLength(20)]
     public string? Tlf { get; set; }
 
     [Column("email")]
-    [StringLength(60)]
-    public string? Email { get; set; }
+    [StringLength(254)]
+    public string Email { get; set; } = null!;
 
     [Column("password")]
     [StringLength(255)]
-    public string? Password { get; set; }
+    public string Password { get; set; } = null!;
 
     [InverseProperty("Loaner")]
     public virtual ICollection<Loan> Loans { get; set; } = new List<Loan>();
