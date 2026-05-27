@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibrarySQLBackend", "Librar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibraryAPI", "LibraryAPI\LibraryAPI.csproj", "{98DA9142-7DBB-4C0C-8676-E2E2E97D37C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibraryTestProject", "LibraryTestProject\LibraryTestProject.csproj", "{AFF0908D-2FA6-4B97-A12B-AEE58A061F48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{98DA9142-7DBB-4C0C-8676-E2E2E97D37C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98DA9142-7DBB-4C0C-8676-E2E2E97D37C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98DA9142-7DBB-4C0C-8676-E2E2E97D37C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFF0908D-2FA6-4B97-A12B-AEE58A061F48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFF0908D-2FA6-4B97-A12B-AEE58A061F48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFF0908D-2FA6-4B97-A12B-AEE58A061F48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFF0908D-2FA6-4B97-A12B-AEE58A061F48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
