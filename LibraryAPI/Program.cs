@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
@@ -29,6 +30,10 @@ builder.Services.AddScoped<IPasswordHasher<Loaner>, PasswordHasher<Loaner>>();
 
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+
+// Fine Repository + service
+builder.Services.AddScoped<IFineRepository, FineRepository>();
+builder.Services.AddScoped<IFineService, FineService>();
 
 // JWT settings
 var jwtKey = builder.Configuration["Jwt:Key"]
