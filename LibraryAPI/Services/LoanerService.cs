@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-
+using System.Text.RegularExpressions;
 namespace LibraryAPI.Services
 {
     public class LoanerService : ILoanerService
@@ -41,6 +41,114 @@ namespace LibraryAPI.Services
 
         public async Task<LoanerDto> RegisterAsync(RegisterLoanerDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.FirstName))
+                throw new ArgumentException("First name is required.");
+
+            if (dto.FirstName.Length < 2 || dto.FirstName.Length > 100)
+                throw new ArgumentException("First name must be between 2 and 100 characters.");
+
+            if (!Regex.IsMatch(dto.FirstName, @"^[A-Za-zÀ-ÿ' -]+$"))
+                throw new ArgumentException("First name contains invalid characters.");
+
+            if (string.IsNullOrWhiteSpace(dto.LastName))
+                throw new ArgumentException("Last name is required.");
+
+            if (dto.LastName.Length < 2 || dto.LastName.Length > 100)
+                throw new ArgumentException("Last name must be between 2 and 100 characters.");
+
+            if (!Regex.IsMatch(dto.LastName, @"^[A-Za-zÀ-ÿ' -]+$"))
+                throw new ArgumentException("Last name contains invalid characters.");
+
+            if (string.IsNullOrWhiteSpace(dto.Cpr))
+                throw new ArgumentException("CPR is required.");
+
+            if (!Regex.IsMatch(dto.Cpr, @"^\d{10}$"))
+                throw new ArgumentException("CPR must contain exactly 10 digits.");
+
+            var datePart = dto.Cpr.Substring(0, 6);
+
+            if (!DateTime.TryParseExact(datePart, "ddMMyy", null, System.Globalization.DateTimeStyles.None, out _))
+                throw new ArgumentException("CPR contains invalid date.");
+
+            if (string.IsNullOrWhiteSpace(dto.Tlf))
+                throw new ArgumentException("Phone number is required.");
+
+            if (!Regex.IsMatch(dto.Tlf, @"^\+[1-9]\d{6,14}$"))
+                throw new ArgumentException("Invalid phone number format.");
+
+            if (Regex.IsMatch(dto.Tlf, @"^\+\d+0+$"))
+                throw new ArgumentException("Phone number cannot contain only zeros.");
+
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                throw new ArgumentException("Email is required.");
+
+            if (dto.Email.Length < 6 || dto.Email.Length > 254)
+                throw new ArgumentException("Email length is invalid.");
+
+            if (dto.Email.Count(c => c == '@') != 1)
+                throw new ArgumentException("Email must contain exactly one '@'.");
+
+            var parts = dto.Email.Split('@');
+
+            string local = parts[0];
+            string domain = parts[1];
+
+            if (string.IsNullOrWhiteSpace(local))
+                throw new ArgumentException("Missing local part.");
+
+            if (string.IsNullOrWhiteSpace(domain))
+                throw new ArgumentException("Missing domain.");
+
+            if (local.Length < 1 || local.Length > 64)
+                throw new ArgumentException("Local part length is invalid.");
+
+            if (domain.Length < 4 || domain.Length > 253)
+                throw new ArgumentException("Domain part length is invalid.");
+
+            if (dto.Email.Contains(" "))
+                throw new ArgumentException("Email cannot contain spaces.");
+
+            if (dto.Email.Contains(".."))
+                throw new ArgumentException("Email cannot contain consecutive dots.");
+
+            if (local.StartsWith(".") || local.EndsWith("."))
+                throw new ArgumentException("Local part cannot start or end with dot.");
+
+            if (domain.StartsWith(".") || domain.EndsWith("."))
+                throw new ArgumentException("Domain cannot start or end with dot.");
+
+            if (!domain.Contains("."))
+                throw new ArgumentException("Domain must contain '.'.");
+
+            if (!Regex.IsMatch(local, @"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$"))
+                throw new ArgumentException("Local part contains invalid characters.");
+
+            if (!Regex.IsMatch(domain, @"^[A-Za-z0-9.-]+$"))
+                throw new ArgumentException("Domain contains invalid characters.");
+
+            var labels = domain.Split('.');
+
+            foreach (var label in labels)
+            {
+                if (string.IsNullOrWhiteSpace(label))
+                    throw new ArgumentException("Invalid domain label.");
+
+                if (label.StartsWith("-") || label.EndsWith("-"))
+                    throw new ArgumentException("Domain labels cannot start or end with '-'.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                throw new ArgumentException("Password is required.");
+
+            if (dto.Password.Length < 8 || dto.Password.Length > 64)
+                throw new ArgumentException("Password must be between 8 and 64 characters.");
+
+            if (dto.Password.Contains(" "))
+                throw new ArgumentException("Password cannot contain spaces.");
+
+            if (!dto.Password.Any(char.IsUpper) || !dto.Password.Any(char.IsLower) || !dto.Password.Any(char.IsDigit))
+                throw new ArgumentException("Password must contain uppercase, lowercase, and number.");
+
             var existing = await _loanerRepository.GetByEmailAsync(dto.Email!);
             if (existing != null)
                 throw new ArgumentException("A user with this email already exists.");
