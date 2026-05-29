@@ -8,7 +8,7 @@ namespace LibraryAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class ReservationController : Controller
     {
         private readonly IReservationService _reservationService;
@@ -17,6 +17,13 @@ namespace LibraryAPI.Controllers
         {
             _reservationService = reservationService;
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAllReservations()
+        {
+            var reservations = await _reservationService.GetAllReservations();
+            return Ok(reservations);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateLoan(CreateReservationDto dto)
         {
@@ -30,6 +37,31 @@ namespace LibraryAPI.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateReservation(int id, ReservationDto dto)
+        {
+            var updatedReservation = await _reservationService.UpdateReservation(id, dto);
+
+            if (updatedReservation == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(updatedReservation);
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteReservation(int id)
+        {
+            var deleted = await _reservationService.DeleteReservation(id);
+
+            if (!deleted)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
     }
 }

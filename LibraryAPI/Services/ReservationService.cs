@@ -15,7 +15,11 @@ namespace LibraryAPI.Services
         {
             _reservationRepository = reservationRepository;
         }
-
+        public async Task<List<ReservationDto>> GetAllReservations()
+        {
+            var reservations = await _reservationRepository.GetAllAsync();
+            return reservations.Select(MapToDto).ToList();
+        }
         public async Task<ReservationDto> CreateReservation(CreateReservationDto createReservationDto)
         {
             if (!await _reservationRepository.ItemExistsAsync(createReservationDto.ItemId))
@@ -48,7 +52,34 @@ namespace LibraryAPI.Services
 
             return MapToDto(reservation);
         }
+        public async Task<ReservationDto?> UpdateReservation(int id,ReservationDto dto)
+        {
+            var reservation = await _reservationRepository.GetByIdAsync(id);
 
+            if (reservation == null)
+            {
+                return null;
+            }
+
+            reservation.Status = dto.Status;
+
+            await _reservationRepository.UpdateAsync(reservation);
+
+            return MapToDto(reservation);
+        }
+        public async Task<bool> DeleteReservation(int id)
+        {
+            var reservation = await _reservationRepository.GetByIdAsync(id);
+
+            if (reservation == null)
+            {
+                return false;
+            }
+
+            await _reservationRepository.DeleteAsync(reservation);
+
+            return true;
+        }
         private ReservationDto MapToDto(Reservation reservation)
         {
             ReservationDto reservationDto = new ReservationDto

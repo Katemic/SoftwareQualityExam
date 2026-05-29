@@ -19,7 +19,10 @@ namespace LibrarySQLBackend.Repositories
         {
             _context = context;
         }
-
+        public async Task<List<Reservation>?> GetAllAsync()
+        {
+            return await _context.Reservations.ToListAsync();
+        }
         public async Task<Reservation?> CreateReservationAsync(Reservation reservation)
         {
             _context.Reservations.Add(reservation);
@@ -28,14 +31,28 @@ namespace LibrarySQLBackend.Repositories
 
             return reservation;
         }
-
+        public async Task<Reservation?> GetByIdAsync(int id)
+        {
+            return await _context.Reservations.FindAsync(id);
+        }
         public async Task<List<Reservation>?> GetByItemIdAsync(int itemId)
         {
             return await _context.Reservations
             .Where(r => r.ItemId == itemId)
             .ToListAsync();
         }
+        public async Task UpdateAsync(Reservation reservation)
+        {
+            _context.Reservations.Update(reservation);
 
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteAsync(Reservation reservation)
+        {
+            _context.Reservations.Remove(reservation);
+
+            await _context.SaveChangesAsync();
+        }
         public async Task<bool> ItemExistsAsync(int itemId)
         {
             var itemExists = await _context.Items
