@@ -1,7 +1,9 @@
 ﻿using LibraryAPI.DTOs;
 using LibraryAPI.Services.Interfaces;
+using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories;
 using LibrarySQLBackend.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryAPI.Services
 {
@@ -14,21 +16,49 @@ namespace LibraryAPI.Services
             _reservationRepository = reservationRepository;
         }
 
-        public Task<ReservationDto> CreateReservation(CreateReservationDto createReservationDto)
+        public async Task<ReservationDto> CreateReservation(CreateReservationDto createReservationDto)
         {
-            var reservation = _reservationRepository.CreateReservationAsync(createReservationDto.LoanerId,createReservationDto.ItemId);
-            ReservationDto reservationDto = new ReservationDto
+            if (!await _reservationRepository.ItemExistsAsync(createReservationDto.ItemId))
             {
-                ItemId = reservation.Result.ItemId,
-                LoanerId = reservation.Result.LoanerId,
-                Status = reservation.Result.Status,
-                queue_number = reservation.Result.QueueNumber
+                throw new KeyNotFoundException("Item not found.");
+            }
+
+            if (!await _reservationRepository.LoanerExistsAsync(createReservationDto.LoanerId))
+            {
+                throw new KeyNotFoundException("Loaner not found.");
+            }
+
+            // Get next queue number
+            var nextQueueNumber = (await _reservationRepository.GetByItemIdAsync(createReservationDto.ItemId))?
+                .Count + 1 ?? 1;
+
+            if(nextQueueNumber > 100)
+            {
+                throw new InvalidOperationException("Reservation queue is full.");
+            }
+
+            var reservation = new Reservation
+            {
+                LoanerId = createReservationDto.LoanerId,
+                ItemId = createReservationDto.ItemId,
+                Status = "pending",
+                QueueNumber = nextQueueNumber
             };
-            // Validate data
+            await _reservationRepository.CreateReservationAsync(reservation);
 
-            return Task.FromResult(reservationDto);
-
+            return MapToDto(reservation);
         }
 
+        private ReservationDto MapToDto(Reservation reservation)
+        {
+            ReservationDto reservationDto = new ReservationDto
+            {
+                ItemId = reservation.ItemId,
+                LoanerId = reservation.LoanerId,
+                Status = reservation.Status,
+                queue_number = reservation.QueueNumber
+            };
+            return reservationDto;
+        }
     }
 }

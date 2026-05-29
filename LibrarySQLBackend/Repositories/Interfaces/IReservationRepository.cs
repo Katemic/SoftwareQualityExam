@@ -10,6 +10,8 @@ namespace LibrarySQLBackend.Repositories.Interfaces
     public interface IReservationRepository
     {
         Task<List<Reservation>?> GetByItemIdAsync(int itemId);
-        Task<Reservation?> CreateReservationAsync(int loanerId, int itemId);
+        Task<Reservation?> CreateReservationAsync(Reservation reservation);
+        Task<bool> ItemExistsAsync(int itemId);
+        Task<bool> LoanerExistsAsync(int loanerId);
     }
 }

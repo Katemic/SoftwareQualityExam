@@ -20,38 +20,8 @@ namespace LibrarySQLBackend.Repositories
             _context = context;
         }
 
-        public async Task<Reservation?> CreateReservationAsync(int loanerId, int itemId)
+        public async Task<Reservation?> CreateReservationAsync(Reservation reservation)
         {
-            // Check if item exists
-            var itemExists = await _context.Items
-                .AnyAsync(i => i.Id == itemId);
-
-            if (!itemExists)
-            {
-                return null;
-            }
-
-            // Check if loaner exists
-            var loanerExists = await _context.Loaners
-                .AnyAsync(l => l.Id == loanerId);
-
-            if (!loanerExists)
-            {
-                return null;
-            }
-
-            // Get next queue number
-            int nextQueueNumber = (await GetByItemIdAsync(itemId))?
-                .Count + 1 ?? 1;
-
-            var reservation = new Reservation
-            {
-                LoanerId = loanerId,
-                ItemId = itemId,
-                Status = "pending",
-                QueueNumber = nextQueueNumber
-            };
-
             _context.Reservations.Add(reservation);
 
             await _context.SaveChangesAsync();
@@ -64,6 +34,30 @@ namespace LibrarySQLBackend.Repositories
             return await _context.Reservations
             .Where(r => r.ItemId == itemId)
             .ToListAsync();
+        }
+
+        public async Task<bool> ItemExistsAsync(int itemId)
+        {
+            var itemExists = await _context.Items
+                .AnyAsync(i => i.Id == itemId);
+
+            if(!itemExists)
+            {
+                return false;    
+            }
+            return true;
+        }
+
+        public async Task<bool> LoanerExistsAsync(int loanerId)
+        {
+            var loanerExists = await _context.Loaners
+                .AnyAsync(l => l.Id == loanerId);
+
+            if (!loanerExists)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
