@@ -77,6 +77,15 @@ namespace LibraryAPI.Services
             }
 
             await _reservationRepository.DeleteAsync(reservation);
+            List<Reservation>? remainingReservations = await _reservationRepository.GetByItemIdAsync(reservation.ItemId); // Update queue numbers for remaining reservations
+            if (remainingReservations != null)
+            {
+                foreach (var remainingReservation in remainingReservations)
+                {
+                    remainingReservation.QueueNumber--;
+                    await _reservationRepository.UpdateAsync(remainingReservation);
+                }
+            }
 
             return true;
         }
