@@ -18,5 +18,6 @@ namespace LibrarySQLBackend.Repositories.Interfaces
 
         Task<bool> ItemExistsAsync(int itemId);
         Task<bool> LoanerExistsAsync(int loanerId);
+        Task<List<Reservation>?> GetByLoanerId(int loanerId);
     }
 }

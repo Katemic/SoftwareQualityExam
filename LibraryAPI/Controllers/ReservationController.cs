@@ -3,9 +3,19 @@ using LibraryAPI.Services;
 using LibraryAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.Serialization;
 
 namespace LibraryAPI.Controllers
 {
+    public enum ReservationStatus
+    {
+        [EnumMember(Value = "pending")]
+        Pending,
+        [EnumMember(Value = "ready for pickup")]
+        ReadyForPickup,
+        [EnumMember(Value = "fulfilled")]
+        Fulfilled
+    }
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize]
@@ -23,7 +33,16 @@ namespace LibraryAPI.Controllers
             var reservations = await _reservationService.GetAllReservations();
             return Ok(reservations);
         }
-
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAllLoanersReservations(int id)
+        {
+            var reservations = await _reservationService.GetAllLoanersReservation(id);
+            if(reservations == null || reservations.Count == 0)
+            {
+                return NotFound();
+            }
+            return Ok(reservations);
+        }
         [HttpPost]
         public async Task<IActionResult> CreateLoan(CreateReservationDto dto)
         {
@@ -39,10 +58,10 @@ namespace LibraryAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateReservation(int id, ReservationDto dto)
+        [HttpPut("Update/{id}")] 
+        public async Task<IActionResult> UpdateReservation(int id, ReservationStatus status) 
         {
-            var updatedReservation = await _reservationService.UpdateReservation(id, dto);
+            var updatedReservation = await _reservationService.UpdateReservation(id, status);
 
             if (updatedReservation == null)
             {

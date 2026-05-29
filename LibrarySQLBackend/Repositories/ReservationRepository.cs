@@ -41,6 +41,12 @@ namespace LibrarySQLBackend.Repositories
             .Where(r => r.ItemId == itemId)
             .ToListAsync();
         }
+        public async Task<List<Reservation>?> GetByLoanerId(int loanerId)
+        {
+            return await _context.Reservations
+                .Where(r => r.LoanerId == loanerId)
+                .ToListAsync();
+        }
         public async Task UpdateAsync(Reservation reservation)
         {
             _context.Reservations.Update(reservation);
@@ -53,6 +59,7 @@ namespace LibrarySQLBackend.Repositories
 
             await _context.SaveChangesAsync();
         }
+
         public async Task<bool> ItemExistsAsync(int itemId)
         {
             var itemExists = await _context.Items
@@ -76,5 +83,7 @@ namespace LibrarySQLBackend.Repositories
             }
             return true;
         }
+
+        
     }
 }
