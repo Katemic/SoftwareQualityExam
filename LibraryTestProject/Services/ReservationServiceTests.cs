@@ -1,4 +1,5 @@
-﻿using LibraryAPI.DTOs;
+﻿using LibraryAPI.Controllers;
+using LibraryAPI.DTOs;
 using LibraryAPI.Services;
 using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories.Interfaces;
@@ -11,24 +12,86 @@ namespace LibraryTestProject.Services
     {
         // Test cases for blackbox Status
 
-        //[TestMethod]
-        //[DataRow("pending", true)]
-        //[DataRow("ready for pickup", true)]
-        //[DataRow("fulfilled", true)]
+        [TestMethod]
+        public async Task ValidateStatusWhenCreatedTest()
+        {
+            // Arrange
+            var repoMock = new Mock<IReservationRepository>();
+            var service = new ReservationService(repoMock.Object);
+
+            repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
+                    .ReturnsAsync(true);
+
+            repoMock.Setup(x => x.LoanerExistsAsync(It.IsAny<int>()))
+                    .ReturnsAsync(true);
+
+            repoMock.Setup(x => x.GetByLoanerId(It.IsAny<int>()))
+                    .ReturnsAsync(new List<Reservation>());
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
+
+            // IMPORTANT: empty queue
+            repoMock.Setup(x => x.GetByItemIdAsync(It.IsAny<int>()))
+                    .ReturnsAsync(new List<Reservation>());
+
+            var dto = new CreateReservationDto
+            {
+                ItemId = 1
+            };
+
+            // Act
+            var result = await service.CreateReservation(dto, 1);
+
+            Assert.AreEqual(result.Status, "pending");
+        }
+
+        // Skal det her være to unit tests?
+        [TestMethod]
+        public async Task UpdateReservation_ShouldUpdateStatusCorrectly()
+        {
+            // Arrange
+            var repoMock = new Mock<IReservationRepository>();
+
+            var reservation = new Reservation
+            {
+                Id = 1,
+                Status = "pending"
+            };
+            var reservation2 = new Reservation
+            {
+                Id = 2,
+                Status = "pending"
+            };
+
+            repoMock.Setup(x => x.GetByIdAsync(1))
+                .ReturnsAsync(reservation);
+            repoMock.Setup(x => x.GetByIdAsync(2))
+                .ReturnsAsync(reservation2);
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Returns(Task.CompletedTask);
+
+            Reservation updatedReservation = null;
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Callback<Reservation>(r => updatedReservation = r)
+                .Returns(Task.CompletedTask);
+
+            var service = new ReservationService(repoMock.Object);
+
+            // Act
+            var result = await service.UpdateReservation(1, ReservationStatus.ReadyForPickup);
+            var result2= await service.UpdateReservation(2, ReservationStatus.Fulfilled);
+
+            // Assert - verify enum conversion
+            Assert.AreEqual("ready for pickup", result.Status);
+            Assert.AreEqual("fulfilled", result2.Status);
+        }
+
         //[DataRow("cancelled", false)]
         //[DataRow("Pending", false)]
         //[DataRow("thisispending", false)]
         //[DataRow(" ", false)]
         //[DataRow(null, false)]
-        //public void ValidateStatusTest(string status, bool expectedIsValid)
-        //{
-        //    // Arrange
-        //    var reservationService = new ReservationService(null); // Pass null for the repository since we are only testing the validation logic
-        //    // Act
-        //    bool isValid = reservationService.ValidateStatus(status);
-        //    // Assert
-        //    Assert.AreEqual(expectedIsValid, isValid);
-
 
         // Test cases for blackbox Queue number
 
@@ -228,7 +291,7 @@ namespace LibraryTestProject.Services
                     .ReturnsAsync(() => true);
             reservationRepositoryMock
             .Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
-        .   ReturnsAsync(true);
+        .ReturnsAsync(true);
 
             reservationRepositoryMock
                 .Setup(x => x.LoanerExistsAsync(It.IsAny<int>()))
@@ -341,13 +404,15 @@ namespace LibraryTestProject.Services
         {
             var repoMock = new Mock<IReservationRepository>();
 
+            repoMock.Setup(x => x.GetByLoanerId(1))
+                .ReturnsAsync(new List<Reservation>());
+
             var service = new ReservationService(repoMock.Object);
-            repoMock.Setup(x => x.GetByIdAsync(1))
-                .ReturnsAsync((Reservation)null);
 
-            var result = await service.DeleteReservation(1, 1);
-
-            Assert.IsFalse(result);
+            await Assert.ThrowsExceptionAsync<KeyNotFoundException>(async () =>
+            {
+                await service.DeleteReservation(1, 1);
+            });
         }
 
         [TestMethod]
@@ -390,6 +455,40 @@ namespace LibraryTestProject.Services
             };
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
                 service.CreateReservation(dto, 1));
+        }
+
+
+        [TestMethod]
+        public async Task CancelReservation_OwnReservation()
+        {
+            var repoMock = new Mock<IReservationRepository>();
+
+            repoMock.Setup(x => x.GetByLoanerId(1))
+                .ReturnsAsync(new List<Reservation>
+                {
+            new Reservation
+            {
+                Id = 1,
+                ItemId = 10,
+                LoanerId = 1,
+                QueueNumber = 1
+            }
+                });
+
+            repoMock.Setup(x => x.GetByItemIdAsync(10))
+                .ReturnsAsync(new List<Reservation>());
+
+            repoMock.Setup(x => x.DeleteAsync(It.IsAny<Reservation>()))
+                .Returns(Task.CompletedTask);
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new ReservationService(repoMock.Object);
+
+            var result = await service.DeleteReservation(10, 1);
+
+            Assert.IsTrue(result);
         }
     }
 }
