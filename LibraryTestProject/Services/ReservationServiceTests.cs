@@ -76,9 +76,8 @@ namespace LibraryTestProject.Services
             // Act
             var result = await service.CreateReservation(new CreateReservationDto
             {
-                ItemId = 1,
-                LoanerId = 1
-            });
+                ItemId = 1
+            }, 1);
 
             // Assert
             Assert.IsNotNull(result);
@@ -115,7 +114,7 @@ namespace LibraryTestProject.Services
 
             // Act + Assert
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-                () => service.CreateReservation(new CreateReservationDto()));
+                () => service.CreateReservation(new CreateReservationDto(), 1));
         }
 
         [TestMethod]
@@ -142,13 +141,11 @@ namespace LibraryTestProject.Services
 
             var dto = new CreateReservationDto
             {
-                ItemId = 1,
-                LoanerId = 1
+                ItemId = 1
             };
 
             // Act
-            var result = await service.CreateReservation(dto);
-
+            var result = await service.CreateReservation(dto, 1);
             // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.queue_number);
@@ -184,11 +181,10 @@ namespace LibraryTestProject.Services
             {
                 var dto = new CreateReservationDto
                 {
-                    ItemId = 1,
-                    LoanerId = i
+                    ItemId = 1
                 };
 
-                var result = await service.CreateReservation(dto);
+                var result = await service.CreateReservation(dto, i);
 
                 Assert.AreEqual(i, result.queue_number);
             }
@@ -241,10 +237,9 @@ namespace LibraryTestProject.Services
             // Act
             var dto = new CreateReservationDto
             {
-                ItemId = 1,
-                LoanerId = 1
+                ItemId = 1
             };
-            var result = await service.CreateReservation(dto);
+            var result = await service.CreateReservation(dto, 1);
             // Assert
             Assert.IsNotNull(result);
         }
@@ -278,12 +273,11 @@ namespace LibraryTestProject.Services
             // Act
             var dto = new CreateReservationDto
             {
-                ItemId = 1,
-                LoanerId = 1
+                ItemId = 1
             };
 
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
-            service.CreateReservation(dto));
+            service.CreateReservation(dto, 1));
         }
 
         [TestMethod]
@@ -316,13 +310,12 @@ namespace LibraryTestProject.Services
 
             var dto = new CreateReservationDto
             {
-                ItemId = 1,
-                LoanerId = 1
+                ItemId = 1
             };
 
             // Act + Assert
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
-                service.CreateReservation(dto));
+                service.CreateReservation(dto, 1));
         }
 
         //[TestMethod]
@@ -352,7 +345,7 @@ namespace LibraryTestProject.Services
             repoMock.Setup(x => x.GetByIdAsync(1))
                 .ReturnsAsync((Reservation)null);
 
-            var result = await service.DeleteReservation(1);
+            var result = await service.DeleteReservation(1, 1);
 
             Assert.IsFalse(result);
         }
@@ -369,12 +362,11 @@ namespace LibraryTestProject.Services
 
             var dto = new CreateReservationDto
             {
-                ItemId = 1,
-                LoanerId = 1
+                ItemId = 1
             };
 
             await Assert.ThrowsExceptionAsync<KeyNotFoundException>(() =>
-                service.CreateReservation(dto));
+                service.CreateReservation(dto, 1));
         }
 
         [TestMethod]
@@ -394,11 +386,10 @@ namespace LibraryTestProject.Services
             var service = new ReservationService(repoMock.Object);
             var dto = new CreateReservationDto
             {
-                ItemId = 1,
-                LoanerId = 1
+                ItemId = 1
             };
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
-                service.CreateReservation(dto));
+                service.CreateReservation(dto, 1));
         }
     }
 }

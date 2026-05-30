@@ -4,6 +4,7 @@ using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories;
 using LibrarySQLBackend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.Reflection;
 using System.Runtime.Serialization;
 
@@ -27,16 +28,16 @@ namespace LibraryAPI.Services
             var activeLoans = await _reservationRepository.GetByLoanerId(loanerId);
             return activeLoans.Select(MapToDto).ToList();
         }
-        public async Task<ReservationDto> CreateReservation(CreateReservationDto createReservationDto)
+        public async Task<ReservationDto> CreateReservation(CreateReservationDto createReservationDto, int loanerId)
         {
-            var nextQueueNumber = await ValidateData(createReservationDto);
+            var nextQueueNumber = await ValidateData(createReservationDto, loanerId);
             if(!await _reservationRepository.ItemIsUnavailable(createReservationDto.ItemId))
             {
                 throw new InvalidOperationException("Item is currently available for loan.");
             }   
             var reservation = new Reservation
             {
-                LoanerId = createReservationDto.LoanerId,
+                LoanerId = loanerId,
                 ItemId = createReservationDto.ItemId,
                 Status = "pending",
                 QueueNumber = nextQueueNumber
@@ -62,25 +63,32 @@ namespace LibraryAPI.Services
             return MapToDto(reservation);
         }
         // Delete a reservation and update queue numbers for remaining reservations of the same item
-        public async Task<bool> DeleteReservation(int id)
+        public async Task<bool> DeleteReservation(int itemId, int loanerId)
         {
-            var reservation = await _reservationRepository.GetByIdAsync(id);
+            var reservations = await _reservationRepository.GetByLoanerId(loanerId);
+
+            var reservation = reservations
+                .FirstOrDefault(r => r.ItemId == itemId);
 
             if (reservation == null)
             {
-                return false;
+                throw new KeyNotFoundException(
+                    "Reservation not found for this loaner.");
             }
 
             await _reservationRepository.DeleteAsync(reservation);
-            List<Reservation>? remainingReservations = await _reservationRepository.GetByItemIdAsync(reservation.ItemId); // Update queue numbers for remaining reservations
-            if (remainingReservations != null)
+
+            var remainingReservations =
+                await _reservationRepository.GetByItemIdAsync(itemId);
+
+            foreach (var remainingReservation in remainingReservations)
             {
-                foreach (var remainingReservation in remainingReservations)
+                if (remainingReservation.QueueNumber > reservation.QueueNumber)
                 {
-                    if(remainingReservation.QueueNumber > reservation.QueueNumber) { 
-                        remainingReservation.QueueNumber--;
-                    await _reservationRepository.UpdateAsync(remainingReservation);
-                    }
+                    remainingReservation.QueueNumber--;
+
+                    await _reservationRepository.UpdateAsync(
+                        remainingReservation);
                 }
             }
 
@@ -98,19 +106,18 @@ namespace LibraryAPI.Services
             return reservationDto;
         }
        
-        private async Task<int> ValidateData(CreateReservationDto createReservationDto)
+        private async Task<int> ValidateData(CreateReservationDto createReservationDto, int loanerId)
         {
             if (!await _reservationRepository.ItemExistsAsync(createReservationDto.ItemId))
             {
                 throw new KeyNotFoundException("Item not found.");
             }
 
-            if (!await _reservationRepository.LoanerExistsAsync(createReservationDto.LoanerId))
+            if (!await _reservationRepository.LoanerExistsAsync(loanerId))
             {
                 throw new KeyNotFoundException("Loaner not found.");
             }
-            var loanerReservations = await _reservationRepository.GetByLoanerId(createReservationDto.LoanerId);
-
+            var loanerReservations = await _reservationRepository.GetByLoanerId(loanerId);
             if (loanerReservations.Count >= 3)
             {
                 throw new InvalidOperationException("Loaner has reached the maximum number of active reservations.");
@@ -130,7 +137,7 @@ namespace LibraryAPI.Services
                 throw new InvalidOperationException("Reservation queue is full.");
             }
 
-            if (existingReservations.Contains(existingReservations.FirstOrDefault(r => r.LoanerId == createReservationDto.LoanerId)))
+            if (existingReservations.Contains(existingReservations.FirstOrDefault(r => r.LoanerId == loanerId)))
             {
                 throw new InvalidOperationException("Loaner has already reserved this item.");
             }

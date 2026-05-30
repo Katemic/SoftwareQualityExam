@@ -3,7 +3,9 @@ using LibraryAPI.Services;
 using LibraryAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.Serialization;
+using System.Security.Claims;
 
 namespace LibraryAPI.Controllers
 {
@@ -18,7 +20,7 @@ namespace LibraryAPI.Controllers
     }
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class ReservationController : Controller
     {
         private readonly IReservationService _reservationService;
@@ -33,9 +35,11 @@ namespace LibraryAPI.Controllers
             var reservations = await _reservationService.GetAllReservations();
             return Ok(reservations);
         }
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAllLoanersReservations(int id)
+        [HttpGet("MyReservations")]
+        public async Task<IActionResult> GetAllLoanersReservations()
         {
+            var id = int.Parse(
+             User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var reservations = await _reservationService.GetAllLoanersReservation(id);
             if(reservations == null || reservations.Count == 0)
             {
@@ -46,16 +50,12 @@ namespace LibraryAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateLoan(CreateReservationDto dto)
         {
-            try
-            {
-                var created = await _reservationService.CreateReservation(dto);
+            var loanerId = int.Parse(
+             User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-                return Ok(created);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var created = await _reservationService.CreateReservation(dto, loanerId);
+
+            return Ok(created);
         }
 
         [HttpPut("Update/{id}")] 
@@ -70,17 +70,20 @@ namespace LibraryAPI.Controllers
 
             return Ok(updatedReservation);
         }
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReservation(int id)
+        [HttpDelete("{itemId}")]
+        public async Task<IActionResult> DeleteReservation(int itemId)
         {
-            var deleted = await _reservationService.DeleteReservation(id);
+            var loanerId = int.Parse(
+             User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var deleted = await _reservationService.DeleteReservation(itemId, loanerId);
 
             if (!deleted)
             {
                 return NotFound();
             }
 
-            return NoContent();
+            return Ok();
         }
     }
 }
