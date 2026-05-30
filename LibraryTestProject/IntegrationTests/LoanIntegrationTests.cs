@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace LibraryTestProject
 {
     [TestClass]
+    [DoNotParallelize]
     public class LoanIntegrationTests
     {
         [TestInitialize]
