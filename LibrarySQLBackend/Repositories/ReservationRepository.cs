@@ -75,7 +75,7 @@ namespace LibrarySQLBackend.Repositories
         public async Task<bool> ItemIsUnavailable(int itemId)
         {
             var hasAvailableItem = await _context.Inventories
-                .AnyAsync(i => i.Id == itemId && i.Status == "available");
+                .AnyAsync(i => i.ItemId == itemId && i.Status == "available");
 
             return !hasAvailableItem;
         }
