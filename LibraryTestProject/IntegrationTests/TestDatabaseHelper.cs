@@ -8,6 +8,7 @@ namespace LibraryTestProject
     public static class TestDatabaseHelper
     {
         private static string? _connectionString;
+        private static readonly SemaphoreSlim DatabaseLock = new(1, 1);
 
         public static AppDbContext CreateContext()
         {
@@ -22,10 +23,19 @@ namespace LibraryTestProject
 
         public static async Task ResetAndSeedDatabaseAsync()
         {
-            await using var context = CreateContext();
+            await DatabaseLock.WaitAsync();
 
-            await ResetDatabaseAsync(context);
-            await SeedDatabaseAsync(context);
+            try
+            {
+                await using var context = CreateContext();
+
+                await ResetDatabaseAsync(context);
+                await SeedDatabaseAsync(context);
+            }
+            finally
+            {
+                DatabaseLock.Release();
+            }
         }
 
         private static string GetConnectionString()
