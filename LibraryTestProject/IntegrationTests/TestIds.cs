@@ -15,5 +15,10 @@ namespace LibraryTestProject
         public const int LoanerWithOverdueLoanId = 1;
 
         public const int ExistingActiveLoanId = 2;
+
+        public const int LoanerWithThreeActiveLoansId = 11;
+        public const int ThreeActiveLoansInventoryId1 = 31;
+        public const int ThreeActiveLoansInventoryId2 = 32;
+        public const int ThreeActiveLoansInventoryId3 = 33;
     }
 }

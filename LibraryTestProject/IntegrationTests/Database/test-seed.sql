@@ -55,7 +55,8 @@ INSERT INTO `loaner` (`id`, `first_name`, `last_name`, `cpr`, `tlf`, `email`, `p
 (2, 'Sofie', 'Hansen', '120295-5678', '87654321', 'sofie.hansen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
 (3, 'Lars', 'Nielsen', '050388-9999', '11223344', 'lars.nielsen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
 (4, 'Emma', 'Pedersen', '220498-2222', '22334455', 'emma.pedersen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
-(5, 'Noah', 'Christensen', '300101-3333', '33445566', 'noah.christensen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC');
+(5, 'Noah', 'Christensen', '300101-3333', '33445566', 'noah.christensen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
+(11, 'Three', 'Loans', '010101-1111', '11111111', 'three.loans@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC');
 
 INSERT INTO `item`
 (`id`, `name`, `release_year`, `description`, `review_summary`, `media_type`, `image`, `language_id`, `publisher_id`, `average_stars`) VALUES
@@ -67,12 +68,18 @@ INSERT INTO `inventory` (`id`, `item_id`, `status`, `barcode`, `placement`) VALU
 (1, 1, 'loaned out', 'BC0001', 'Shelf A1'),
 (2, 1, 'loaned out', 'BC0002', 'Shelf A1'),
 (21, 11, 'available', 'BC0021', 'Boardgame 1'),
-(23, 12, 'available', 'BC0023', 'Boardgame 2');
+(23, 12, 'available', 'BC0023', 'Boardgame 2'),
+(31, 11, 'loaned out', 'BC0031', 'Boardgame 1'),
+(32, 11, 'loaned out', 'BC0032', 'Boardgame 1'),
+(33, 11, 'loaned out', 'BC0033', 'Boardgame 1');
 
 INSERT INTO `loan`
 (`id`, `loan_date`, `due_date`, `return_date`, `status`, `loaner_id`, `inventory_id`) VALUES
 (1, '2026-02-10 10:00:00', '2026-02-24 10:00:00', NULL, 'overdue', 1, 2),
-(2, '2026-02-15 12:00:00', '2026-02-28 12:00:00', NULL, 'active', 2, 1);
+(2, '2026-02-15 12:00:00', '2026-02-28 12:00:00', NULL, 'active', 2, 1),
+(21, '2026-03-01 10:00:00', '2026-03-15 10:00:00', NULL, 'active', 11, 31),
+(22, '2026-03-02 10:00:00', '2026-03-16 10:00:00', NULL, 'active', 11, 32),
+(23, '2026-03-03 10:00:00', '2026-03-17 10:00:00', NULL, 'active', 11, 33);
 
 INSERT INTO `fine`
 (`id`, `amount`, `status`, `created_date`, `paid_date`, `loan_id`) VALUES

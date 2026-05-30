@@ -67,6 +67,59 @@ namespace LibraryTestProject
         }
 
         // Integration test:
+        // Date rules for the loan happy path.
+        //
+        // Scenario:
+        // A valid loaner creates a loan.
+        // The created loan gets LoanDate set to the current day.
+        // The created loan gets DueDate set to LoanDate + 14 days.
+        // The created loan has ReturnDate = null.
+        // The loan is returned.
+        // The returned loan gets ReturnDate set.
+        // The ReturnDate is greater than or equal to the LoanDate.
+        [TestMethod]
+        public async Task LoanScenario_CreateLoanAndReturnLoan_SetsDatesCorrectly()
+        {
+            // Arrange
+            await using var context = TestDatabaseHelper.CreateContext();
+
+            var loanRepository = new LoanRepository(context);
+            var inventoryRepository = new InventoryRepository(context);
+            var loanerRepository = new LoanerRepository(context);
+
+            var service = new LoanService(
+                loanRepository,
+                inventoryRepository,
+                loanerRepository);
+
+            var dto = new CreateLoanDto
+            {
+                LoanerId = TestIds.ValidLoanerId,
+                InventoryId = TestIds.AvailableInventoryId
+            };
+
+            // Act
+            var createdLoan = await service.CreateLoanAsync(dto);
+
+            var loanAfterCreate = await context.Loans
+                .AsNoTracking()
+                .FirstAsync(x => x.Id == createdLoan.Id);
+
+            await service.ReturnLoanAsync(createdLoan.Id);
+
+            var loanAfterReturn = await context.Loans
+                .AsNoTracking()
+                .FirstAsync(x => x.Id == createdLoan.Id);
+
+            // Assert
+            Assert.AreEqual(DateTime.Now.Date, loanAfterCreate.LoanDate.Date);
+            Assert.AreEqual(loanAfterCreate.LoanDate.AddDays(14).Date, loanAfterCreate.DueDate.Date);
+            Assert.IsNull(loanAfterCreate.ReturnDate);
+            Assert.IsNotNull(loanAfterReturn.ReturnDate);
+            Assert.IsTrue(loanAfterReturn.ReturnDate >= loanAfterReturn.LoanDate);
+        }
+
+        // Integration test:
         // Important database-backed rejection case.
         //
         // Scenario:
@@ -124,6 +177,40 @@ namespace LibraryTestProject
             var dto = new CreateLoanDto
             {
                 LoanerId = TestIds.LoanerWithOverdueLoanId,
+                InventoryId = TestIds.AvailableInventoryId
+            };
+
+            // Act + Assert
+            await Assert.ThrowsExceptionAsync<InvalidOperationException>(
+                () => service.CreateLoanAsync(dto));
+        }
+
+        // Integration test:
+        // Important database-backed rejection case.
+        //
+        // Scenario:
+        // A loaner already has 3 active loans in the database.
+        // The loaner tries to create another loan.
+        // Expected result:
+        // The loan is rejected.
+        [TestMethod]
+        public async Task LoanScenario_LoanerHasThreeActiveLoans_RejectsLoan()
+        {
+            // Arrange
+            await using var context = TestDatabaseHelper.CreateContext();
+
+            var loanRepository = new LoanRepository(context);
+            var inventoryRepository = new InventoryRepository(context);
+            var loanerRepository = new LoanerRepository(context);
+
+            var service = new LoanService(
+                loanRepository,
+                inventoryRepository,
+                loanerRepository);
+
+            var dto = new CreateLoanDto
+            {
+                LoanerId = TestIds.LoanerWithThreeActiveLoansId,
                 InventoryId = TestIds.AvailableInventoryId
             };
 
