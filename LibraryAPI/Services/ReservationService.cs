@@ -30,7 +30,10 @@ namespace LibraryAPI.Services
         public async Task<ReservationDto> CreateReservation(CreateReservationDto createReservationDto)
         {
             var nextQueueNumber = await ValidateData(createReservationDto);
-            
+            if(!await _reservationRepository.ItemIsUnavailable(createReservationDto.ItemId))
+            {
+                throw new InvalidOperationException("Item is currently available for loan.");
+            }   
             var reservation = new Reservation
             {
                 LoanerId = createReservationDto.LoanerId,

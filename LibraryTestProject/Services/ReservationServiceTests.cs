@@ -63,13 +63,15 @@ namespace LibraryTestProject.Services
 
             repoMock.Setup(x => x.GetByLoanerId(It.IsAny<int>()))
                     .ReturnsAsync(new List<Reservation>());
-
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
             var reservations = Enumerable.Range(1, reservationCount)
                 .Select(i => new Reservation { QueueNumber = i })
                 .ToList();
 
             repoMock.Setup(x => x.GetByItemIdAsync(It.IsAny<int>()))
                     .ReturnsAsync(reservations);
+
 
             // Act
             var result = await service.CreateReservation(new CreateReservationDto
@@ -108,6 +110,8 @@ namespace LibraryTestProject.Services
 
             repoMock.Setup(x => x.GetByItemIdAsync(It.IsAny<int>()))
                     .ReturnsAsync(reservations);
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
 
             // Act + Assert
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(
@@ -129,6 +133,8 @@ namespace LibraryTestProject.Services
 
             repoMock.Setup(x => x.GetByLoanerId(It.IsAny<int>()))
                     .ReturnsAsync(new List<Reservation>());
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
 
             // IMPORTANT: empty queue
             repoMock.Setup(x => x.GetByItemIdAsync(It.IsAny<int>()))
@@ -168,7 +174,8 @@ namespace LibraryTestProject.Services
 
             repoMock.Setup(x => x.GetByItemIdAsync(It.IsAny<int>()))
                     .ReturnsAsync(() => reservations);
-
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
             repoMock.Setup(x => x.CreateReservationAsync(It.IsAny<Reservation>()))
                     .Callback<Reservation>(r => reservations.Add(r));
 
@@ -221,6 +228,8 @@ namespace LibraryTestProject.Services
             reservationRepositoryMock
             .Setup(x => x.GetByLoanerId(It.IsAny<int>()))
             .Returns(Task.FromResult(fakeReservations));
+            reservationRepositoryMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
             reservationRepositoryMock
             .Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
         .   ReturnsAsync(true);
@@ -258,6 +267,8 @@ namespace LibraryTestProject.Services
             reservationRepositoryMock
             .Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
             .ReturnsAsync(true);
+            reservationRepositoryMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
 
             reservationRepositoryMock
                 .Setup(x => x.LoanerExistsAsync(It.IsAny<int>()))
@@ -299,7 +310,8 @@ namespace LibraryTestProject.Services
                 QueueNumber = 1
             }
                 });
-
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                    .ReturnsAsync(() => true);
             var service = new ReservationService(repoMock.Object);
 
             var dto = new CreateReservationDto
@@ -362,6 +374,30 @@ namespace LibraryTestProject.Services
             };
 
             await Assert.ThrowsExceptionAsync<KeyNotFoundException>(() =>
+                service.CreateReservation(dto));
+        }
+
+        [TestMethod]
+        public async Task CreateReservation_ShouldFail_WhenItemIsAvailable()
+        {
+            var repoMock = new Mock<IReservationRepository>();
+            repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
+                .ReturnsAsync(true);
+            repoMock.Setup(x => x.LoanerExistsAsync(It.IsAny<int>()))
+                .ReturnsAsync(true);
+            repoMock.Setup(x => x.GetByLoanerId(It.IsAny<int>()))
+                .ReturnsAsync(new List<Reservation>());
+            repoMock.Setup(x => x.GetByItemIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(new List<Reservation>());
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+                .ReturnsAsync(false);
+            var service = new ReservationService(repoMock.Object);
+            var dto = new CreateReservationDto
+            {
+                ItemId = 1,
+                LoanerId = 1
+            };
+            await Assert.ThrowsExceptionAsync<InvalidOperationException>(() =>
                 service.CreateReservation(dto));
         }
     }

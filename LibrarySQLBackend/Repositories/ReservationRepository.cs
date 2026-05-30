@@ -72,6 +72,14 @@ namespace LibrarySQLBackend.Repositories
             return true;
         }
 
+        public async Task<bool> ItemIsUnavailable(int itemId)
+        {
+          var itemUnavailable = await _context.Inventories
+           .AnyAsync(i => i.Id == itemId && i.Status == "loaned out");
+
+            return itemUnavailable;
+        }
+
         public async Task<bool> LoanerExistsAsync(int loanerId)
         {
             var loanerExists = await _context.Loaners
