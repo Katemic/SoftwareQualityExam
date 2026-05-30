@@ -73,11 +73,38 @@ namespace LibraryAPI.Services
             if (string.IsNullOrWhiteSpace(dto.Tlf))
                 throw new ArgumentException("Phone number is required.");
 
-            if (!Regex.IsMatch(dto.Tlf, @"^\+[1-9]\d{6,14}$"))
-                throw new ArgumentException("Invalid phone number format.");
+            if (dto.Tlf.Count(c => c == '+') != 1)
+                throw new ArgumentException("Phone number must contain exactly one '+' sign.");
 
-            if (Regex.IsMatch(dto.Tlf, @"^\+\d+0+$"))
-                throw new ArgumentException("Phone number cannot contain only zeros.");
+            if (!dto.Tlf.StartsWith('+'))
+                throw new ArgumentException("Phone number must start with '+'.");
+
+            var split = dto.Tlf.Split(' ');
+
+            if (split.Length != 2)
+                throw new ArgumentException("Phone number must contain exactly one whitespace.");
+
+            string countryPart = split[0];
+            string subscriber = split[1];
+
+            string countryCode = countryPart.Substring(1);
+
+            if (countryCode.Length < 1 || countryCode.Length > 3)
+                throw new ArgumentException("Country code must be between 1 and 3 digits.");
+
+            if (!countryCode.All(char.IsDigit))
+                throw new ArgumentException("Country code must contain only digits.");
+
+            if (!subscriber.All(char.IsDigit))
+                throw new ArgumentException("Subscriber number must contain only digits.");
+
+            int totalDigits = countryCode.Length + subscriber.Length;
+
+            if (totalDigits < 7 || totalDigits > 15)
+                throw new ArgumentException("Phone number must contain between 7 and 15 digits.");
+
+            if (subscriber.All(c => c == '0'))
+                throw new ArgumentException("Subscriber number cannot contain only zeros.");
 
             if (string.IsNullOrWhiteSpace(dto.Email))
                 throw new ArgumentException("Email is required.");
@@ -99,12 +126,6 @@ namespace LibraryAPI.Services
             if (string.IsNullOrWhiteSpace(domain))
                 throw new ArgumentException("Missing domain.");
 
-            if (local.Length < 1 || local.Length > 64)
-                throw new ArgumentException("Local part length is invalid.");
-
-            if (domain.Length < 4 || domain.Length > 253)
-                throw new ArgumentException("Domain part length is invalid.");
-
             if (dto.Email.Contains(" "))
                 throw new ArgumentException("Email cannot contain spaces.");
 
@@ -119,6 +140,12 @@ namespace LibraryAPI.Services
 
             if (!domain.Contains("."))
                 throw new ArgumentException("Domain must contain '.'.");
+
+            if (local.Length < 1 || local.Length > 64)
+                throw new ArgumentException("Local part length is invalid.");
+
+            if (domain.Length < 4 || domain.Length > 253)
+                throw new ArgumentException("Domain part length is invalid.");
 
             if (!Regex.IsMatch(local, @"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$"))
                 throw new ArgumentException("Local part contains invalid characters.");
