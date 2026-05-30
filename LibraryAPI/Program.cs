@@ -29,6 +29,7 @@ builder.Services.AddScoped<IPasswordHasher<Loaner>, PasswordHasher<Loaner>>();
 
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+builder.Services.AddScoped<IInventoryRepository,InventoryRepository>();
 
 // JWT settings
 var jwtKey = builder.Configuration["Jwt:Key"]

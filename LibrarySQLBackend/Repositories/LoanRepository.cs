@@ -29,71 +29,72 @@ namespace LibrarySQLBackend.Repositories
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
 
-        public async Task<int> CreateLoanAsync(int loanerId, int inventoryId)
+        public async Task<Loan> CreateLoanAsync(Loan loan)
         {
-            var connection = _context.Database.GetDbConnection();
-            var shouldClose = connection.State != ConnectionState.Open;
+            var inventory = await _context.Inventories
+                .FirstOrDefaultAsync(i => i.Id == loan.InventoryId);
 
-            if (shouldClose)
-                await connection.OpenAsync();
+            if (inventory == null)
+                throw new InvalidOperationException("Inventory could not be found while creating the loan.");
 
-            try
-            {
-                await using var command = connection.CreateCommand();
+            inventory.Status = "loaned out";
 
-                command.CommandText = "sp_create_loan";
-                command.CommandType = CommandType.StoredProcedure;
+            _context.Loans.Add(loan);
 
-                command.Parameters.Add(CreateParameter(command, "p_loaner_id", loanerId));
-                command.Parameters.Add(CreateParameter(command, "p_inventory_id", inventoryId));
+            await _context.SaveChangesAsync();
 
-                var outputParameter = CreateParameter(command, "p_new_loan_id", DBNull.Value);
-                outputParameter.Direction = ParameterDirection.Output;
-                command.Parameters.Add(outputParameter);
-
-                await command.ExecuteNonQueryAsync();
-
-                return Convert.ToInt32(outputParameter.Value);
-            }
-            finally
-            {
-                if (shouldClose)
-                    await connection.CloseAsync();
-            }
+            return await GetByIdAsync(loan.Id)
+                   ?? throw new InvalidOperationException("Loan could not be created.");
         }
 
         public async Task ReturnLoanAsync(int loanId)
         {
-            var connection = _context.Database.GetDbConnection();
-            var shouldClose = connection.State != ConnectionState.Open;
+            var loan = await _context.Loans
+                .Include(l => l.Inventory)
+                .FirstOrDefaultAsync(l => l.Id == loanId);
 
-            if (shouldClose)
-                await connection.OpenAsync();
+            if (loan == null)
+                throw new InvalidOperationException("The loan was not found while returning the loan.");
 
-            try
+            loan.ReturnDate = DateTime.Now;
+            loan.Status = "returned";
+
+            if (loan.Inventory != null)
             {
-                await using var command = connection.CreateCommand();
-
-                command.CommandText = "sp_return_loan";
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.Add(CreateParameter(command, "p_loan_id", loanId));
-
-                await command.ExecuteNonQueryAsync();
+                loan.Inventory.Status = "available";
             }
-            finally
-            {
-                if (shouldClose)
-                    await connection.CloseAsync();
-            }
+
+            await _context.SaveChangesAsync();
         }
 
-        private static DbParameter CreateParameter(DbCommand command, string name, object? value)
+        public async Task<bool> HasUnpaidFineAsync(int loanerId)
         {
-            var parameter = command.CreateParameter();
-            parameter.ParameterName = name;
-            parameter.Value = value ?? DBNull.Value;
-            return parameter;
+            return await _context.Fines
+                .Include(f => f.Loan)
+                .AnyAsync(f =>
+                    f.Loan.LoanerId == loanerId &&
+                    (f.Status == "unpaid" || f.Status == "late"));
         }
+
+        public async Task<int> CountActiveLoansAsync(int loanerId)
+        {
+            return await _context.Loans
+                .CountAsync(l =>
+                    l.LoanerId == loanerId &&
+                    l.ReturnDate == null);
+        }
+
+        public async Task<bool> HasOverdueLoanAsync(int loanerId)
+        {
+            return await _context.Loans
+                .AnyAsync(l =>
+                    l.LoanerId == loanerId &&
+                    l.ReturnDate == null &&
+                    (
+                        l.Status == "overdue"
+                    ));
+        }
+
+
     }
 }
