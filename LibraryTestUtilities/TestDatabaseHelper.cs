@@ -1,27 +1,29 @@
 ﻿using LibrarySQLBackend.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System.Data;
 
-namespace LibraryTestProject
+namespace LibraryTestUtilities
 {
-    public static class TestDatabaseHelper
+    public class TestDatabaseHelper
     {
-        private static string? _connectionString;
+        private readonly string _connectionString;
         private static readonly SemaphoreSlim DatabaseLock = new(1, 1);
 
-        public static AppDbContext CreateContext()
+        public TestDatabaseHelper(string connectionString)
         {
-            var connectionString = GetConnectionString();
+            _connectionString = connectionString;
+        }
 
+        public AppDbContext CreateContext()
+        {
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+                .UseMySql(_connectionString, ServerVersion.AutoDetect(_connectionString))
                 .Options;
 
             return new AppDbContext(options);
         }
 
-        public static async Task ResetAndSeedDatabaseAsync()
+        public async Task ResetAndSeedDatabaseAsync()
         {
             await DatabaseLock.WaitAsync();
 
@@ -36,21 +38,6 @@ namespace LibraryTestProject
             {
                 DatabaseLock.Release();
             }
-        }
-
-        private static string GetConnectionString()
-        {
-            if (_connectionString != null)
-                return _connectionString;
-
-            var configuration = new ConfigurationBuilder()
-                .AddUserSecrets<TestProjectMarker>()
-                .Build();
-
-            _connectionString = configuration.GetConnectionString("TestConnection")
-                ?? throw new InvalidOperationException("Missing test database connection string.");
-
-            return _connectionString;
         }
 
         private static async Task ResetDatabaseAsync(AppDbContext context)
@@ -90,7 +77,6 @@ namespace LibraryTestProject
             ";
 
             await command.ExecuteNonQueryAsync();
-
             await connection.CloseAsync();
         }
 
@@ -98,8 +84,7 @@ namespace LibraryTestProject
         {
             var seedFilePath = Path.Combine(
                 AppContext.BaseDirectory,
-                "IntegrationTests",
-                "Database",
+                "TestData",
                 "test-seed.sql");
 
             if (!File.Exists(seedFilePath))
@@ -150,9 +135,5 @@ namespace LibraryTestProject
                 .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Where(statement => !string.IsNullOrWhiteSpace(statement));
         }
-    }
-
-    public class TestProjectMarker
-    {
     }
 }

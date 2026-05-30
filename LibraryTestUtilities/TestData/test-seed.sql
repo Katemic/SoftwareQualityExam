@@ -51,12 +51,12 @@ INSERT INTO `tag` (`id`, `name`) VALUES
 (10, 'Short Sessions');
 
 INSERT INTO `loaner` (`id`, `first_name`, `last_name`, `cpr`, `tlf`, `email`, `password`) VALUES
-(1, 'Mads', 'Jensen', '010190-1234', '12345678', 'mads.jensen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
-(2, 'Sofie', 'Hansen', '120295-5678', '87654321', 'sofie.hansen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
-(3, 'Lars', 'Nielsen', '050388-9999', '11223344', 'lars.nielsen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
-(4, 'Emma', 'Pedersen', '220498-2222', '22334455', 'emma.pedersen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
-(5, 'Noah', 'Christensen', '300101-3333', '33445566', 'noah.christensen@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC'),
-(11, 'Three', 'Loans', '010101-1111', '11111111', 'three.loans@example.com', '$2b$12$0wD2wZJj7lKUCJkFScpF5.PVo9WYllp7hzXSfEtMCk0HjGEAJ6AvC');
+(1, 'Mads', 'Jensen', '010190-1234', '12345678', 'mads.jensen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(2, 'Sofie', 'Hansen', '120295-5678', '87654321', 'sofie.hansen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(3, 'Lars', 'Nielsen', '050388-9999', '11223344', 'lars.nielsen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(4, 'Emma', 'Pedersen', '220498-2222', '22334455', 'emma.pedersen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(5, 'Noah', 'Christensen', '300101-3333', '33445566', 'noah.christensen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(11, 'Three', 'Loans', '010101-1111', '11111111', 'three.loans@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog==');
 
 INSERT INTO `item`
 (`id`, `name`, `release_year`, `description`, `review_summary`, `media_type`, `image`, `language_id`, `publisher_id`, `average_stars`) VALUES

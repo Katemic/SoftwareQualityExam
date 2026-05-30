@@ -8,7 +8,6 @@ namespace LibraryAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class ItemsController : ControllerBase
     {
         private readonly IItemService _itemService;
@@ -35,6 +34,7 @@ namespace LibraryAPI.Controllers
             return Ok(item);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<ItemDetailsDto>> AddAsync(CreateItemDto dto)
         {
@@ -43,6 +43,7 @@ namespace LibraryAPI.Controllers
             return Ok(createdItem);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAsync(int id, UpdateItemDto dto)
         {
@@ -56,6 +57,7 @@ namespace LibraryAPI.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(int id)
         {

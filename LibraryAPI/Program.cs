@@ -12,10 +12,17 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionStringName = builder.Environment.IsEnvironment("Testing")
+    ? "TestConnection"
+    : "DefaultConnection";
 
-// DbContext
+var connectionString = builder.Configuration.GetConnectionString(connectionStringName);
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
@@ -98,7 +105,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
     app.UseSwagger();
     app.UseSwaggerUI();

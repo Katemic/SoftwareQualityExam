@@ -1,7 +1,9 @@
 using LibraryAPI.DTOs;
 using LibraryAPI.Services;
 using LibrarySQLBackend.Repositories;
+using LibraryTestUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LibraryTestProject
@@ -10,10 +12,26 @@ namespace LibraryTestProject
     [DoNotParallelize]
     public class LoanIntegrationTests
     {
+
+        private static TestDatabaseHelper CreateDatabaseHelper()
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanIntegrationTests>()
+                .Build();
+
+            var connectionString = configuration.GetConnectionString("TestConnection")
+                ?? throw new InvalidOperationException("Missing test database connection string.");
+
+            return new TestDatabaseHelper(connectionString);
+        }
+
+
         [TestInitialize]
         public async Task ResetDatabaseBeforeEachTest()
         {
-            await TestDatabaseHelper.ResetAndSeedDatabaseAsync();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await databaseHelper.ResetAndSeedDatabaseAsync();
         }
 
         // Integration test:
@@ -31,7 +49,9 @@ namespace LibraryTestProject
         public async Task LoanScenario_CreateLoanAndReturnLoan_UpdatesDatabaseCorrectly()
         {
             // Arrange
-            await using var context = TestDatabaseHelper.CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
 
             var loanRepository = new LoanRepository(context);
             var inventoryRepository = new InventoryRepository(context);
@@ -81,7 +101,9 @@ namespace LibraryTestProject
         public async Task LoanScenario_CreateLoanAndReturnLoan_SetsDatesCorrectly()
         {
             // Arrange
-            await using var context = TestDatabaseHelper.CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
 
             var loanRepository = new LoanRepository(context);
             var inventoryRepository = new InventoryRepository(context);
@@ -130,7 +152,9 @@ namespace LibraryTestProject
         public async Task LoanScenario_LoanerHasUnpaidFine_RejectsLoan()
         {
             // Arrange
-            await using var context = TestDatabaseHelper.CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
 
             var loanRepository = new LoanRepository(context);
             var inventoryRepository = new InventoryRepository(context);
@@ -163,7 +187,9 @@ namespace LibraryTestProject
         public async Task LoanScenario_LoanerHasOverdueLoan_RejectsLoan()
         {
             // Arrange
-            await using var context = TestDatabaseHelper.CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
 
             var loanRepository = new LoanRepository(context);
             var inventoryRepository = new InventoryRepository(context);
@@ -197,7 +223,9 @@ namespace LibraryTestProject
         public async Task LoanScenario_LoanerHasThreeActiveLoans_RejectsLoan()
         {
             // Arrange
-            await using var context = TestDatabaseHelper.CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
 
             var loanRepository = new LoanRepository(context);
             var inventoryRepository = new InventoryRepository(context);

@@ -17,16 +17,11 @@
   <ItemGroup>
     <ProjectReference Include="..\LibraryAPI\LibraryAPI.csproj" />
     <ProjectReference Include="..\LibrarySQLBackend\LibrarySQLBackend.csproj" />
+    <ProjectReference Include="..\LibraryTestUtilities\LibraryTestUtilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
-
-	<ItemGroup>
-		<None Update="IntegrationTests\Database\test-seed.sql">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
 
 </Project>
