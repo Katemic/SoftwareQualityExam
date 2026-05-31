@@ -12,7 +12,7 @@ namespace LibraryTestProject.Integration
     public class FineIntegrationTests
     {
         private const string ConnectionString =
-            "server=localhost;port=3306;database=mydb_test;user=root;password=123456";
+            "server=localhost;port=3307;database=mydb_test;user=root;password=1234";
 
         // Integration test - happy path:
         // Tests that FineService, FineRepository, LoanRepository,

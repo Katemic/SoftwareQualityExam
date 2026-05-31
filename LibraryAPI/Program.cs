@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
@@ -44,6 +45,8 @@ builder.Services.AddScoped<IInventoryRepository,InventoryRepository>();
 builder.Services.AddScoped<IFineRepository, FineRepository>();
 builder.Services.AddScoped<IFineService, FineService>();
 
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 // JWT settings
 var jwtKey = builder.Configuration["Jwt:Key"]
              ?? throw new InvalidOperationException("Missing Jwt:Key");
@@ -109,6 +112,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter());
+    });
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
@@ -125,3 +136,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
