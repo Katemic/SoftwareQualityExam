@@ -4,6 +4,7 @@ namespace LibraryAPI.DTOs
 {
     public class ReservationDto
     {
+        public int Id { get; set; }
         public int ItemId { get; set; }
         public int LoanerId { get; set; }
         public string Status { get; set; }

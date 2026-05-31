@@ -7,5 +7,6 @@ namespace LibraryAPI.Services.Interfaces
         Task<LoanDto?> GetByIdAsync(int id);
         Task<LoanDto> CreateLoanAsync(CreateLoanDto dto);
         Task ReturnLoanAsync(int loanId);
+        Task<IEnumerable<SeeLoanDto>> GetMyLoansAsync(int loanerId, bool includeReturned);
     }
 }

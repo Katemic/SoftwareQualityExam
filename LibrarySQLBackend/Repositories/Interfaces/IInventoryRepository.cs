@@ -11,5 +11,6 @@ namespace LibrarySQLBackend.Repositories.Interfaces
     {
         Task<Inventory?> GetByIdAsync(int inventoryId);
         Task UpdateAsync(Inventory inventory);
+        Task<List<Inventory>> GetAllByItemIdAsync(int itemId);
     }
 }

@@ -94,6 +94,39 @@ namespace LibraryAPI.Services
             await _loanRepository.ReturnLoanAsync(loanId);
         }
 
+        public async Task<IEnumerable<SeeLoanDto>> GetMyLoansAsync(int loanerId, bool includeReturned)
+        {
+            var loans = await _loanRepository.GetAllByLoanerIdAsync(loanerId, includeReturned);
+
+            return loans.Select(MapToSeeLoanDto);
+        }
+
+        private static SeeLoanDto MapToSeeLoanDto(Loan loan)
+        {
+            return new SeeLoanDto
+            {
+                Id = loan.Id,
+
+                LoanDate = loan.LoanDate,
+                DueDate = loan.DueDate,
+                ReturnDate = loan.ReturnDate,
+
+                Status = loan.Status,
+
+                LoanerId = loan.LoanerId,
+                InventoryId = loan.InventoryId,
+
+                InventoryStatus = loan.Inventory?.Status,
+                Barcode = loan.Inventory?.Barcode,
+                Placement = loan.Inventory?.Placement,
+
+                ItemId = loan.Inventory?.ItemId ?? 0,
+                ItemName = loan.Inventory?.Item?.Name,
+                MediaType = loan.Inventory?.Item?.MediaType,
+                ReleaseYear = loan.Inventory?.Item?.ReleaseYear
+            };
+        }
+
         private static LoanDto MapToDto(Loan loan)
         {
             return new LoanDto

@@ -30,5 +30,15 @@ namespace LibrarySQLBackend.Repositories
             _context.Inventories.Update(inventory);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Inventory>> GetAllByItemIdAsync(int itemId)
+        {
+            return await _context.Inventories
+                .AsNoTracking()
+                .Where(i => i.ItemId == itemId)
+                .OrderBy(i => i.Id)
+                .ToListAsync();
+        }
+
     }
 }

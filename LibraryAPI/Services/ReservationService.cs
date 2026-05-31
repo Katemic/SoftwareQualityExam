@@ -98,6 +98,7 @@ namespace LibraryAPI.Services
         {
             ReservationDto reservationDto = new ReservationDto
             {
+                Id = reservation.Id,
                 ItemId = reservation.ItemId,
                 LoanerId = reservation.LoanerId,
                 Status = reservation.Status,
