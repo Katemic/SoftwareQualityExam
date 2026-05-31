@@ -32,6 +32,8 @@ namespace LibraryTestProject.IntegrationTests.Reservations
             await databaseHelper.ResetAndSeedDatabaseAsync();
         }
 
+        // Test cases:
+        // Positive, tests queue number is equal to count of reservations of said item
         [TestMethod]
         public async Task ReservationScenario_CreateReservation_AssignsQueueNumberAsCountPlusOne()
         {
@@ -61,6 +63,9 @@ namespace LibraryTestProject.IntegrationTests.Reservations
             // Assert
             Assert.AreEqual(expectedQueue, saved.QueueNumber);
         }
+
+        // Test case:
+        // Negative, tests that reservation is rejected if loaner has unpaid fine
         [TestMethod]
         public async Task ReservationScenario_LoanerHasUnpaidFine_RejectsReservation()
         {
@@ -84,6 +89,9 @@ namespace LibraryTestProject.IntegrationTests.Reservations
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(
                 () => service.CreateReservation(dto, loanerId));
         }
+
+        // Test case:
+        // Negative, tests that reservation is rejected if loaner has three active reservations
         [TestMethod]
         public async Task ReservationScenario_LoanerHasThreeReservations_RejectsNewOne()
         {
@@ -108,6 +116,9 @@ namespace LibraryTestProject.IntegrationTests.Reservations
                 () => service.CreateReservation(dto, loanerId));
         }
 
+        // Test case:
+        // Positive, tests that after deleting a reservation, the queue numbers of remaining reservations stay sequential
+        // Tests queue numbers stay unique
         [TestMethod]
         public async Task QueueNumber_StaysSequential_AfterDeletion() {             
             // Arrange
@@ -127,6 +138,8 @@ namespace LibraryTestProject.IntegrationTests.Reservations
             Assert.AreEqual(user3.queue_number, 2);
         }
 
+        // Test case:
+        // Positive, update works and updates to correct status
         [TestMethod]
         [DataRow(ReservationStatus.Fulfilled, "fulfilled")]
         [DataRow(ReservationStatus.ReadyForPickup, "ready for pickup")]
