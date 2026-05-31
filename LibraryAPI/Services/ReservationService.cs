@@ -13,10 +13,12 @@ namespace LibraryAPI.Services
     public class ReservationService : IReservationService
     {
         private readonly IReservationRepository _reservationRepository;
+        private readonly ILoanRepository _loanRepository;
 
-        public ReservationService(IReservationRepository reservationRepository)
+        public ReservationService(IReservationRepository reservationRepository, ILoanRepository loanRepository)
         {
             _reservationRepository = reservationRepository;
+            _loanRepository = loanRepository;
         }
         public async Task<List<ReservationDto>> GetAllReservations()
         {
@@ -35,7 +37,7 @@ namespace LibraryAPI.Services
             {
                 throw new InvalidOperationException("Item is currently available for loan.");
             }   
-            if(await UserHasUnpaidFines(loanerId))
+            if(await _loanRepository.HasUnpaidFineAsync(loanerId))
             {
                 throw new InvalidOperationException("Loaner has unpaid fines and cannot make a reservation.");
             }
@@ -171,14 +173,5 @@ namespace LibraryAPI.Services
             throw new KeyNotFoundException("This is not a valid value");
         }
 
-        private async Task<bool> UserHasUnpaidFines(int loanerId)
-        {
-            var unpaidFines = await _reservationRepository.GetUnpaidFinesByLoanerId(loanerId);
-            if (unpaidFines != null && unpaidFines.Count > 0)
-            {
-                return true;
-            }
-            return false;
-        }
     }
 }
