@@ -59,7 +59,6 @@ namespace LibrarySQLBackend.Repositories
 
             await _context.SaveChangesAsync();
         }
-
         public async Task<bool> ItemExistsAsync(int itemId)
         {
             var itemExists = await _context.Items
@@ -71,7 +70,6 @@ namespace LibrarySQLBackend.Repositories
             }
             return true;
         }
-
         public async Task<bool> ItemIsUnavailable(int itemId)
         {
             var hasAvailableItem = await _context.Inventories
@@ -92,6 +90,20 @@ namespace LibrarySQLBackend.Repositories
             return true;
         }
 
+        public async Task<List<Fine>?> GetUnpaidFinesByLoanerId(int loanerId)
+        {
+            List<Fine> unpaidFines = await _context.Fines.Where(f => f.Status == "unpaid").ToListAsync();
+            List<Fine> loanerUnpaidFines = new List<Fine>();
+            foreach (var fine in unpaidFines)
+            {
+                var loan = await _context.Loans.FindAsync(fine.LoanId);
+                if (loan != null && loan.LoanerId == loanerId)
+                {
+                    loanerUnpaidFines.Add(fine);
+                }
+            }
+            return loanerUnpaidFines;
+        }
         
     }
 }

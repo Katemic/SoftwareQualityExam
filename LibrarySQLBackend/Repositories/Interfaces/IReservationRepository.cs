@@ -20,5 +20,6 @@ namespace LibrarySQLBackend.Repositories.Interfaces
         Task<bool> LoanerExistsAsync(int loanerId);
         Task<List<Reservation>?> GetByLoanerId(int loanerId);
         Task<bool> ItemIsUnavailable(int itemId);
+        Task<List<Fine>?> GetUnpaidFinesByLoanerId(int loanerId);
     }
 }
