@@ -188,7 +188,6 @@ namespace LibraryTestProject.Services
 
         // Test cases for blackbox Queue number
 
-        //[DataRow("Unique", true)]
         // Test cases:
         // Positive test, when queue is not full, should assign next queue number
         [TestMethod]
@@ -350,22 +349,6 @@ namespace LibraryTestProject.Services
         }
 
         // Test cases for blackbox Buisness rules
-        /* 
-         * Test cases
-
-        User has an unpaid fine when creating a reservation
-        Invalid - Deny reservation and give error message
-        User is not logged in
-        Invalid - Deny reservation and give error message
-        User cancels one of their reservations
-        Valid - Remove reservation and give confirmation
-        User tries to cancel someone else's reservation
-        Invalid - Deny cancellation and give error message
-
-        Item is available
-        Invalid - Can’t create a reservation for an available item, make loan instead
-
-        */
 
         // Test cases:
         // Positive, user can create reservation when they have less than 3 active reservations, and item is unavailable
