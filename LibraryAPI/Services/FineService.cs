@@ -52,7 +52,7 @@ namespace LibraryAPI.Services
                 Convert.ToDateTime(loan.DueDate);
 
             var daysOverdue =
-                (DateTime.Now.Date - dueDate.Date).Days;
+                (dto.CreatedDate.Date - dueDate.Date).Days;
 
             if (daysOverdue <= 0)
             {
@@ -69,12 +69,24 @@ namespace LibraryAPI.Services
                     "Loan already has an unpaid fine.");
             }
 
+            if (dto.Amount <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Amount must be greater than 0.");
+            }
+
+            if (dto.CreatedDate.Date > DateTime.Now.Date)
+            {
+                throw new InvalidOperationException(
+                    "Created date cannot be in the future.");
+            }
+
             var fine = new Fine
             {
                 LoanId = dto.LoanId,
                 Amount = 20,
                 Status = "unpaid",
-                CreatedDate = DateTime.Now,
+                CreatedDate = dto.CreatedDate
             };
 
             var createdFine =
