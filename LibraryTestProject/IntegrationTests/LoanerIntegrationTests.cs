@@ -211,5 +211,62 @@ namespace LibraryTestProject
                 "Invalid email or password.",
                 loginResult.Message);
         }
+        // Integration test:
+        // Important authentication rejection case.
+        //
+        // Scenario:
+        // A valid loaner registers.
+        // The loaner attempts to log in with an incorrect email.
+        // Expected result:
+        // Login fails.
+        // No token is returned.
+        [TestMethod]
+        public async Task LoanerScenario_EmailDoesNotExist_LoginFails()
+        {
+            // Arrange
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
+
+            var loanerRepository = new LoanerRepository(context);
+
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanerIntegrationTests>()
+                .Build();
+
+            var passwordHasher = new PasswordHasher<Loaner>();
+
+            var service = new LoanerService(
+                loanerRepository,
+                passwordHasher,
+                configuration);
+
+            var registerDto = new RegisterLoanerDto
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Cpr = "0101901234",
+                Tlf = "+45 12345678",
+                Email = $"john{Guid.NewGuid()}@test.com",
+                Password = "Password123"
+            };
+
+            await service.RegisterAsync(registerDto);
+
+            // Act
+            var loginResult = await service.LoginAsync(
+                new LoginDto
+                {
+                    Email = "doesnotexist@test.com",
+                    Password = registerDto.Password
+                });
+
+            // Assert
+            Assert.IsFalse(loginResult.Success);
+            Assert.IsNull(loginResult.Token);
+            Assert.AreEqual(
+                "Invalid email or password.",
+                loginResult.Message);
+        }
     }
 }

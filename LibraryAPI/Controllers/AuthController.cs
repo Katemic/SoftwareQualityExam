@@ -3,6 +3,7 @@ using LibraryAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static LibraryAPI.Services.LoanerService;
 
 namespace LibraryAPI.Controllers
 {
@@ -20,26 +21,63 @@ namespace LibraryAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterLoanerDto dto)
         {
-            var created = await _loanerService.RegisterAsync(dto);
-            return Ok(created);
+            try
+            {
+                var created = await _loanerService.RegisterAsync(dto);
+                return Ok(created);
+            }
+            catch (DuplicateEmailException ex)
+            {
+                return Conflict(new
+                {
+                    message = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var result = await _loanerService.LoginAsync(dto);
+            try
+            {
+                var result = await _loanerService.LoginAsync(dto);
 
-            if (!result.Success)
-                return Unauthorized(result);
+                if (!result.Success)
+                    return Unauthorized(result);
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
 
         [Authorize]
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            return Ok(new { message = "Client should delete the stored token." });
+            try
+            {
+                return Ok(new { message = "Client should delete the stored token." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
     }
 }

@@ -178,7 +178,7 @@ namespace LibraryAPI.Services
 
             var existing = await _loanerRepository.GetByEmailAsync(dto.Email!);
             if (existing != null)
-                throw new ArgumentException("A user with this email already exists.");
+                throw new DuplicateEmailException("A user with this email already exists.");
 
             var loaner = new Loaner
             {
@@ -312,6 +312,13 @@ namespace LibraryAPI.Services
             loaner.Password = _passwordHasher.HashPassword(loaner, dto.NewPassword);
 
             await _loanerRepository.UpdateAsync(loaner);
+        }
+        public class DuplicateEmailException : Exception
+        {
+            public DuplicateEmailException(string message)
+                : base(message)
+            {
+            }
         }
     }
 }
