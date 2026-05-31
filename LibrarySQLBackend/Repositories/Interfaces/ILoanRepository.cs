@@ -10,7 +10,11 @@ namespace LibrarySQLBackend.Repositories.Interfaces
     public interface ILoanRepository
     {
         Task<Loan?> GetByIdAsync(int id);
-        Task<int> CreateLoanAsync(int loanerId, int inventoryId);
+        Task<Loan> CreateLoanAsync(Loan loan);
         Task ReturnLoanAsync(int loanId);
+
+        Task<bool> HasUnpaidFineAsync(int loanerId);
+        Task<int> CountActiveLoansAsync(int loanerId);
+        Task<bool> HasOverdueLoanAsync(int loanerId);
     }
 }
