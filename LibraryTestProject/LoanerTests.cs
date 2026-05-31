@@ -160,7 +160,7 @@ public class LoanerTests
 
     [DataTestMethod]
     [DataRow("José")]
-    [DataRow("Anne-Marie O'Connor")]
+    [DataRow("Anne-Marie O'Connor")] //split i 3
     public async Task RegisterAsync_FirstNameSpecialCharacters_Valid(string name)
     {
         var dto = ValidDto();
@@ -221,7 +221,7 @@ public class LoanerTests
 
         Assert.AreEqual(dto.Cpr, result.Cpr);
     }
-    [TestMethod]
+    [TestMethod] // kombiner med 11
     public async Task RegisterAsync_CprLength9_ThrowsException()
     {
         var dto = ValidDto();
@@ -359,7 +359,7 @@ public class LoanerTests
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-    [TestMethod]
+    [TestMethod] // split i 2 og behold total length 
     public async Task RegisterAsync_EmailTooLong_ThrowsException()
     {
         string email =
@@ -480,7 +480,7 @@ public class LoanerTests
     [DataRow("Test@exam.ple.com")]
     [DataRow("Test123@example.com")]
     [DataRow("Test@123example.com")]
-    [DataRow("Te+!#$%&'*+-/=?^_st@example.com")]
+    [DataRow("Te+!#$%&'*+-/=?^_st@example.com")] // split
     [DataRow("test.user@example.com")]
     [DataRow("test@mail.example.com")]
     public async Task RegisterAsync_ValidEmail_ReturnsLoaner(string email)
@@ -505,7 +505,7 @@ public class LoanerTests
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-    [TestMethod]
+    [TestMethod] // tilføj 9
     public async Task RegisterAsync_PasswordLength7_ThrowsException()
     {
         var dto = ValidDto();

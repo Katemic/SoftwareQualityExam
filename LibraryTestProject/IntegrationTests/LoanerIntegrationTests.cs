@@ -9,7 +9,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-/*[TestClass]
+[TestClass]
 public class LoanerIntegrationTests
 {
     private static TestDatabaseHelper CreateDatabaseHelper()
@@ -53,7 +53,7 @@ public class LoanerIntegrationTests
         return new AppDbContext(options);
     }
 
-    [TestMethod]
+    [TestMethod] // brug service istedet for controller og tilføj ikke kunnel logge ind
     public async Task Loaner_Lifecycle_Register_Login_Update_And_Delete()
     {
         // Arrange
@@ -152,4 +152,4 @@ public class LoanerIntegrationTests
     {
         _client.Dispose();
     }
-}*/
+}

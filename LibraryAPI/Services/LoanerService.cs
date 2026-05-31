@@ -195,7 +195,7 @@ namespace LibraryAPI.Services
             return MapToDto(created);
         }
 
-        public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+        public async Task<AuthResponseDto> LoginAsync(LoginDto dto) //tjek om email og password er null eller whitespace og returner fejl i så fald
         {
             var loaner = await _loanerRepository.GetByEmailAsync(dto.Email!);
 

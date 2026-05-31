@@ -20,12 +20,6 @@ namespace LibraryAPI.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (userId != id.ToString())
-            {
-                return Forbid();
-            }
             var loaner = await _loanerService.GetByIdAsync(id);
 
             if (loaner == null)
@@ -34,7 +28,7 @@ namespace LibraryAPI.Controllers
             return Ok(loaner);
         }
 
-        [HttpPut("{id}")]
+        /*[HttpPut("{id}")]
         [Authorize]
         public async Task<IActionResult> Update(
             int id,
@@ -102,6 +96,6 @@ namespace LibraryAPI.Controllers
                     message = ex.Message
                 });
             }
-        }
+        }*/
     }
 }
