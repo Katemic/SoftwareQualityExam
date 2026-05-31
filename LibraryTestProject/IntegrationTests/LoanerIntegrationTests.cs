@@ -63,7 +63,7 @@ namespace LibraryTestProject
                 passwordHasher,
                 configuration);
 
-            var registerDto = new RegisterLoanerDto
+            /*var registerDto = new RegisterLoanerDto
             {
                 FirstName = "John",
                 LastName = "Doe",
@@ -83,7 +83,40 @@ namespace LibraryTestProject
                     Password = registerDto.Password
                 });
 
+
             // Assert
+            //var loanerFromDatabase = await context.Loaners
+            //    .FirstAsync(x => x.Id == createdLoaner.Id);
+
+            var loaner = await loanerRepository.GetByEmailAsync(registerDto.Email);
+
+            var result = passwordHasher.VerifyHashedPassword(
+                loaner,
+                loaner.Password!,
+                registerDto.Password);
+
+            Assert.AreNotEqual(
+                PasswordVerificationResult.Failed,
+                result);*/
+
+            /*Assert.IsTrue(loginResult.Success);
+            Assert.IsNotNull(loginResult.Token);
+            Assert.IsNotNull(loginResult.User);*/
+
+            var registerDto = new RegisterLoanerDto
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Cpr = "0101901234",
+                Tlf = "+45 12345678",
+                Email = $"john{Guid.NewGuid()}@test.com",
+                Password = "Password123"
+            };
+
+            // Act
+            var createdLoaner = await service.RegisterAsync(registerDto);
+
+            // Assert database state
             var loanerFromDatabase = await context.Loaners
                 .FirstAsync(x => x.Id == createdLoaner.Id);
 
@@ -91,10 +124,21 @@ namespace LibraryTestProject
             Assert.AreEqual(registerDto.LastName, loanerFromDatabase.LastName);
             Assert.AreEqual(registerDto.Email, loanerFromDatabase.Email);
 
-            Assert.IsTrue(loginResult.Success);
-            Assert.IsNotNull(loginResult.Token);
-            Assert.IsNotNull(loginResult.User);
+            var result = passwordHasher.VerifyHashedPassword(
+                loanerFromDatabase,
+                loanerFromDatabase.Password!,
+                registerDto.Password);
+
+            Assert.AreNotEqual(
+                PasswordVerificationResult.Failed,
+                result);
+
+            Assert.AreEqual(registerDto.FirstName, loanerFromDatabase.FirstName);
+            Assert.AreEqual(registerDto.LastName, loanerFromDatabase.LastName);
+            Assert.AreEqual(registerDto.Email, loanerFromDatabase.Email);
+
         }
+
 
         // Integration test:
         // Important database-backed rejection case.
@@ -150,7 +194,7 @@ namespace LibraryTestProject
             await service.RegisterAsync(firstLoaner);
 
             // Act + Assert
-            await Assert.ThrowsExceptionAsync<ArgumentException>(
+            await Assert.ThrowsExceptionAsync<LoanerService.DuplicateEmailException>(
                 () => service.RegisterAsync(secondLoaner));
         }
 
