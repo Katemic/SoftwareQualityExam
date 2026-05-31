@@ -233,7 +233,27 @@ namespace LibraryAPI.Services
                 User = MapToDto(loaner)
             };
         }
+        public async Task<LoanerDto?> UpdateAsync(int id, UpdateLoanerDto dto)
+        {
+            var loaner = await _loanerRepository.GetByIdAsync(id);
 
+            if (loaner == null)
+                return null;
+
+            loaner.FirstName = dto.FirstName;
+            loaner.LastName = dto.LastName;
+            loaner.Tlf = dto.Tlf;
+            loaner.Email = dto.Email;
+            
+
+            await _loanerRepository.UpdateAsync(loaner);
+
+            return MapToDto(loaner);
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            return await _loanerRepository.DeleteAsync(id);
+        }
         private string GenerateJwtToken(Loaner loaner, out DateTime expiresAtUtc)
         {
             var jwtKey = _configuration["Jwt:Key"]
@@ -279,6 +299,19 @@ namespace LibraryAPI.Services
                 Tlf = loaner.Tlf,
                 Email = loaner.Email
             };
+        }
+        public async Task ChangePasswordAsync(int loanerId, ChangePasswordDto dto)
+        {
+            var loaner = await _loanerRepository.GetByIdAsync(loanerId);
+
+            var result = _passwordHasher.VerifyHashedPassword(loaner, loaner.Password!, dto.CurrentPassword);
+
+            if (result == PasswordVerificationResult.Failed)
+                throw new UnauthorizedAccessException();
+
+            loaner.Password = _passwordHasher.HashPassword(loaner, dto.NewPassword);
+
+            await _loanerRepository.UpdateAsync(loaner);
         }
     }
 }
