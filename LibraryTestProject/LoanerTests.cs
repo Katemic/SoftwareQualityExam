@@ -3,62 +3,34 @@ using LibraryAPI.Services;
 using LibrarySQLBackend.Context;
 using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories;
+using LibrarySQLBackend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
+using Moq;
 
 namespace LibraryTestProject;
 
 [TestClass]
 public class LoanerTests
 {
-    private IConfiguration _configuration = null!;
-    private AppDbContext _context = null!;
+    private Mock<ILoanerRepository> _repoMock = null!;
+    private Mock<IConfiguration> _configMock = null!;
+    private Mock<IPasswordHasher<Loaner>> _passwordHasherMock = null!;
     private LoanerService _service = null!;
-    private IDbContextTransaction _transaction;
 
     [TestInitialize]
-    public async Task Setup()
+    public void Setup()
     {
-        _configuration = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.Test.json")
-                .Build();
-
-        var connectionString =
-            _configuration.GetConnectionString("TestDatabase");
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseMySql(
-                connectionString,
-                ServerVersion.AutoDetect(connectionString))
-            .Options;
-
-        _context = new AppDbContext(options);
-
-        var repository = new LoanerRepository(_context);
-        var passwordHasher = new PasswordHasher<Loaner>();
+        _repoMock = new Mock<ILoanerRepository>();
+        _configMock = new Mock<IConfiguration>();
+        _passwordHasherMock = new Mock<IPasswordHasher<Loaner>>();
 
         _service = new LoanerService(
-            repository,
-            passwordHasher,
-            _configuration);
-        _transaction = await _context.Database.BeginTransactionAsync();
-    }
-    [TestCleanup]
-    public async Task Cleanup()
-    {
-        if (_transaction != null)
-        {
-            await _transaction.RollbackAsync();
-            await _transaction.DisposeAsync();
-        }
-
-        if (_context != null)
-        {
-            await _context.DisposeAsync();
-        }
+            _repoMock.Object,
+            _passwordHasherMock.Object,
+            _configMock.Object);
     }
 
     private RegisterLoanerDto ValidDto()
@@ -139,6 +111,20 @@ public class LoanerTests
         var dto = ValidDto();
         dto.FirstName = name;
 
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
+
         var result = await _service.RegisterAsync(dto);
 
         Assert.AreEqual(name, result.FirstName);
@@ -153,6 +139,20 @@ public class LoanerTests
         var dto = ValidDto();
         dto.FirstName = name;
 
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
+
         var result = await _service.RegisterAsync(dto);
 
         Assert.AreEqual(name, result.FirstName);
@@ -165,6 +165,20 @@ public class LoanerTests
     {
         var dto = ValidDto();
         dto.FirstName = name;
+
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
 
         var result = await _service.RegisterAsync(dto);
 
@@ -217,6 +231,20 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Cpr = "0101201234";
 
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
+
         var result = await _service.RegisterAsync(dto);
 
         Assert.AreEqual(dto.Cpr, result.Cpr);
@@ -235,6 +263,20 @@ public class LoanerTests
     {
         var dto = ValidDto();
         dto.Cpr = "0101201234";
+
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
 
         var result = await _service.RegisterAsync(dto);
 
@@ -318,6 +360,20 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Tlf = phone;
 
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
+
         var result = await _service.RegisterAsync(dto);
 
         Assert.AreEqual(phone, result.Tlf);
@@ -330,6 +386,20 @@ public class LoanerTests
     {
         var dto = ValidDto();
         dto.Tlf = phone;
+
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
 
         var result = await _service.RegisterAsync(dto);
 
@@ -488,6 +558,20 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = email;
 
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
+
         var result = await _service.RegisterAsync(dto);
 
         Assert.AreEqual(email, result.Email);
@@ -521,6 +605,20 @@ public class LoanerTests
     {
         var dto = ValidDto();
         dto.Password = password;
+
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
 
         var result = await _service.RegisterAsync(dto);
 
@@ -602,6 +700,20 @@ public class LoanerTests
     {
         var dto = ValidDto();
         dto.Password = password;
+
+        _repoMock
+            .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync((Loaner?)null);
+
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
+
+        _repoMock
+            .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
+            .ReturnsAsync((Loaner l) => l);
 
         var result = await _service.RegisterAsync(dto);
 
