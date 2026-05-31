@@ -27,6 +27,9 @@ public partial class Fine
     [Column("paid_date", TypeName = "datetime")]
     public DateTime? PaidDate { get; set; }
 
+    [Column("due_date", TypeName = "datetime")]
+    public DateTime DueDate { get; set; }
+
     [Column("loan_id")]
     public int LoanId { get; set; }
 
