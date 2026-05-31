@@ -96,10 +96,13 @@ jobs:
       - name: Build backend
         run: dotnet build "$SOLUTION" --configuration Release --no-restore
 
+      - name: List discovered tests
+        run: dotnet test "$TEST_PROJECT" --configuration Release --no-build --list-tests
+
       - name: Run unit tests
         run: |
           mkdir -p TestResults/unit TestResults/coverage
-          dotnet-coverage collect             "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/unit --logger trx --filter 'FullyQualifiedName!~Integration'"             -f xml             -o TestResults/coverage/unit.xml
+          dotnet-coverage collect             "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/unit --logger trx --filter FullyQualifiedName!~Integration"             -f xml             -o TestResults/coverage/unit.xml
 
       - name: Reset database before integration tests
         run: |
@@ -110,7 +113,7 @@ jobs:
       - name: Run integration tests in code
         run: |
           mkdir -p TestResults/integration TestResults/coverage
-          dotnet-coverage collect             "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/integration --logger trx --filter 'FullyQualifiedName~Integration'"             -f xml             -o TestResults/coverage/integration.xml
+          dotnet-coverage collect             "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/integration --logger trx --filter FullyQualifiedName~Integration"             -f xml             -o TestResults/coverage/integration.xml
 
       - name: End SonarCloud scan
         if: always()
