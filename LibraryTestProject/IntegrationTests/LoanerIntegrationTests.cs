@@ -1,155 +1,215 @@
 ﻿using LibraryAPI.DTOs;
-using LibrarySQLBackend.Context;
+using LibraryAPI.Services;
+using LibrarySQLBackend.Models;
+using LibrarySQLBackend.Repositories;
+using LibraryTestUtilities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-
-[TestClass]
-public class LoanerIntegrationTests
+namespace LibraryTestProject
 {
-    private static TestDatabaseHelper CreateDatabaseHelper()
+    [DoNotParallelize]
+    [TestClass]
+    public class LoanerIntegrationTests
     {
-        var configuration = new ConfigurationBuilder()
-            .AddUserSecrets<LoanerIntegrationTests>()
-            .Build();
-
-        var connectionString = configuration.GetConnectionString("TestConnection")
-            ?? throw new InvalidOperationException("Missing test database connection string.");
-
-        return new TestDatabaseHelper(connectionString);
-    }
-    private static readonly HttpClient _client = new()
-    {
-        BaseAddress = new Uri("https://localhost:7019")
-    };
-
-    [TestInitialize]
-    public async Task ResetDatabaseBeforeEachTest()
-    {
-        var databaseHelper = CreateDatabaseHelper();
-
-        await databaseHelper.ResetAndSeedDatabaseAsync();
-    }
-    private static AppDbContext CreateDbContext()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddUserSecrets<LoanerIntegrationTests>()
-            .Build();
-
-        var connectionString = configuration.GetConnectionString("TestConnection")
-            ?? throw new InvalidOperationException("Missing test database connection string.");
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseMySql(
-                connectionString,
-                ServerVersion.AutoDetect(connectionString))
-            .Options;
-
-        return new AppDbContext(options);
-    }
-
-    [TestMethod] // brug service istedet for controller og tilføj ikke kunnel logge ind
-    public async Task Loaner_Lifecycle_Register_Login_Update_And_Delete()
-    {
-        // Arrange
-        var registerDto = new RegisterLoanerDto
+        private static TestDatabaseHelper CreateDatabaseHelper()
         {
-            FirstName = "John",
-            LastName = "Doe",
-            Cpr = "0101901234",
-            Tlf = "+45 12345678",
-            Email = $"john{Guid.NewGuid()}@test.com",
-            Password = "Password123"
-        };
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanerIntegrationTests>()
+                .Build();
 
-        // Register
-        var registerResponse =
-            await _client.PostAsJsonAsync(
-                "/api/auth/register",
-                registerDto);
+            var connectionString = configuration.GetConnectionString("TestConnection")
+                ?? throw new InvalidOperationException("Missing test database connection string.");
 
-        registerResponse.EnsureSuccessStatusCode();
+            return new TestDatabaseHelper(connectionString);
+        }
 
-        // Login
-        var loginResponse =
-            await _client.PostAsJsonAsync(
-                "/api/auth/login",
+        [TestInitialize]
+        public async Task ResetDatabaseBeforeEachTest()
+        {
+            var databaseHelper = CreateDatabaseHelper();
+
+            await databaseHelper.ResetAndSeedDatabaseAsync();
+        }
+
+        // Integration test:
+        // Broad happy path based on Khorikov's approach.
+        //
+        // Scenario:
+        // A valid loaner registers.
+        // The loaner is saved to the database.
+        // The loaner logs in using the registered credentials.
+        // Login succeeds.
+        // A JWT token is returned.
+        [TestMethod]
+        public async Task LoanerScenario_RegisterAndLogin_WorksCorrectly()
+        {
+            // Arrange
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
+
+            var loanerRepository = new LoanerRepository(context);
+
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanerIntegrationTests>()
+                .Build();
+
+            var passwordHasher = new PasswordHasher<Loaner>();
+
+            var service = new LoanerService(
+                loanerRepository,
+                passwordHasher,
+                configuration);
+
+            var registerDto = new RegisterLoanerDto
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Cpr = "0101901234",
+                Tlf = "+45 12345678",
+                Email = $"john{Guid.NewGuid()}@test.com",
+                Password = "Password123"
+            };
+
+            // Act
+            var createdLoaner = await service.RegisterAsync(registerDto);
+
+            var loginResult = await service.LoginAsync(
                 new LoginDto
                 {
                     Email = registerDto.Email,
                     Password = registerDto.Password
                 });
 
-        loginResponse.EnsureSuccessStatusCode();
+            // Assert
+            var loanerFromDatabase = await context.Loaners
+                .FirstAsync(x => x.Id == createdLoaner.Id);
 
-        var auth =
-            await loginResponse.Content
-                .ReadFromJsonAsync<AuthResponseDto>();
+            Assert.AreEqual(registerDto.FirstName, loanerFromDatabase.FirstName);
+            Assert.AreEqual(registerDto.LastName, loanerFromDatabase.LastName);
+            Assert.AreEqual(registerDto.Email, loanerFromDatabase.Email);
 
-        Assert.IsNotNull(auth);
-        Assert.IsTrue(auth.Success);
-        Assert.IsNotNull(auth.Token);
-        Assert.IsNotNull(auth.User);
-
-        _client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(
-                "Bearer",
-                auth.Token);
-
-        int loanerId = auth.User.Id;
-
-        // Update
-        var updateDto = new UpdateLoanerDto
-        {
-            FirstName = "NewJane",
-            LastName = "NewDoe",
-            Email = $"Newjane{Guid.NewGuid()}@test.com",
-            Tlf = "+45 87654321"
-        };
-
-        var updateResponse =
-            await _client.PutAsJsonAsync(
-                $"/api/loaner/{loanerId}",
-                updateDto);
-
-        updateResponse.EnsureSuccessStatusCode();
-
-        // Verify update
-        using (var context = CreateDbContext())
-        {
-            var loaner = await context.Loaners.FindAsync(loanerId);
-
-            Assert.IsNotNull(loaner);
-            Assert.AreEqual("NewJane", loaner.FirstName);
-            Assert.AreEqual(updateDto.Email, loaner.Email);
+            Assert.IsTrue(loginResult.Success);
+            Assert.IsNotNull(loginResult.Token);
+            Assert.IsNotNull(loginResult.User);
         }
 
-        // Delete
-        var deleteResponse =
-            await _client.DeleteAsync(
-                $"/api/loaner/{loanerId}");
-
-        Assert.AreEqual(
-            HttpStatusCode.NoContent,
-            deleteResponse.StatusCode);
-
-        // Verify delete
-        using (var context = CreateDbContext())
+        // Integration test:
+        // Important database-backed rejection case.
+        //
+        // Scenario:
+        // A loaner registers successfully.
+        // Another loaner attempts to register using the same email.
+        // Expected result:
+        // Registration is rejected.
+        [TestMethod]
+        public async Task LoanerScenario_EmailAlreadyExists_RejectsRegistration()
         {
-            var deletedLoaner = await context.Loaners.FindAsync(loanerId);
+            // Arrange
+            var databaseHelper = CreateDatabaseHelper();
 
-            Assert.IsNull(deletedLoaner);
+            await using var context = databaseHelper.CreateContext();
+
+            var loanerRepository = new LoanerRepository(context);
+
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanerIntegrationTests>()
+                .Build();
+
+            var passwordHasher = new PasswordHasher<Loaner>();
+
+            var service = new LoanerService(
+                loanerRepository,
+                passwordHasher,
+                configuration);
+
+            var email = $"john{Guid.NewGuid()}@test.com";
+
+            var firstLoaner = new RegisterLoanerDto
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Cpr = "0101901234",
+                Tlf = "+45 12345678",
+                Email = email,
+                Password = "Password123"
+            };
+
+            var secondLoaner = new RegisterLoanerDto
+            {
+                FirstName = "Jane",
+                LastName = "Doe",
+                Cpr = "0202901234",
+                Tlf = "+45 87654321",
+                Email = email,
+                Password = "Password123"
+            };
+
+            await service.RegisterAsync(firstLoaner);
+
+            // Act + Assert
+            await Assert.ThrowsExceptionAsync<ArgumentException>(
+                () => service.RegisterAsync(secondLoaner));
         }
-    }
 
-    [ClassCleanup]
-    public static void ClassCleanup()
-    {
-        _client.Dispose();
+        // Integration test:
+        // Important authentication rejection case.
+        //
+        // Scenario:
+        // A valid loaner registers.
+        // The loaner attempts to log in with an incorrect password.
+        // Expected result:
+        // Login fails.
+        // No token is returned.
+        [TestMethod]
+        public async Task LoanerScenario_InvalidPassword_LoginFails()
+        {
+            // Arrange
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
+
+            var loanerRepository = new LoanerRepository(context);
+
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanerIntegrationTests>()
+                .Build();
+
+            var passwordHasher = new PasswordHasher<Loaner>();
+
+            var service = new LoanerService(
+                loanerRepository,
+                passwordHasher,
+                configuration);
+
+            var registerDto = new RegisterLoanerDto
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Cpr = "0101901234",
+                Tlf = "+45 12345678",
+                Email = $"john{Guid.NewGuid()}@test.com",
+                Password = "Password123"
+            };
+
+            await service.RegisterAsync(registerDto);
+
+            // Act
+            var loginResult = await service.LoginAsync(
+                new LoginDto
+                {
+                    Email = registerDto.Email,
+                    Password = "WrongPassword123"
+                });
+
+            // Assert
+            Assert.IsFalse(loginResult.Success);
+            Assert.IsNull(loginResult.Token);
+            Assert.AreEqual(
+                "Invalid email or password.",
+                loginResult.Message);
+        }
     }
 }
