@@ -57,16 +57,9 @@ namespace LibraryTestProject.Services
                 Id = 1,
                 Status = "pending"
             };
-            var reservation2 = new Reservation
-            {
-                Id = 2,
-                Status = "pending"
-            };
 
             repoMock.Setup(x => x.GetByIdAsync(1))
                 .ReturnsAsync(reservation);
-            repoMock.Setup(x => x.GetByIdAsync(2))
-                .ReturnsAsync(reservation2);
             repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
                 .Returns(Task.CompletedTask);
 
@@ -79,19 +72,105 @@ namespace LibraryTestProject.Services
             var service = new ReservationService(repoMock.Object);
 
             // Act
-            var result = await service.UpdateReservation(1, (ReservationStatus)Enum.Parse(typeof(ReservationStatus), "Cancelled"));
-            var result2= await service.UpdateReservation(2, ReservationStatus.Fulfilled);
+            var result= await service.UpdateReservation(1, ReservationStatus.Fulfilled);
+
+            // Assert - verify enum conversion
+            Assert.AreEqual("fulfilled", result.Status);
+        }
+        [TestMethod]
+        public async Task UpdateReservation_ShouldUpdateStatusReadyForPickup()
+        {
+            // Arrange
+            var repoMock = new Mock<IReservationRepository>();
+
+            var reservation = new Reservation
+            {
+                Id = 1,
+                Status = "pending"
+            };
+
+            repoMock.Setup(x => x.GetByIdAsync(1))
+                .ReturnsAsync(reservation);
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Returns(Task.CompletedTask);
+
+            Reservation updatedReservation = null;
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Callback<Reservation>(r => updatedReservation = r)
+                .Returns(Task.CompletedTask);
+
+            var service = new ReservationService(repoMock.Object);
+
+            // Act
+            var result = await service.UpdateReservation(1, ReservationStatus.ReadyForPickup);
 
             // Assert - verify enum conversion
             Assert.AreEqual("ready for pickup", result.Status);
-            Assert.AreEqual("fulfilled", result2.Status);
+        }
+        [TestMethod]
+        [DataRow("cancelled")]
+        [DataRow("thisispending")]
+        [DataRow(" ")]
+        public async Task UpdateReservation_ShouldUpdateStatusInvalid(string invalidStatus)
+        {
+            // Arrange
+            var repoMock = new Mock<IReservationRepository>();
+
+            var reservation = new Reservation
+            {
+                Id = 1,
+                Status = "pending"
+            };
+
+            repoMock.Setup(x => x.GetByIdAsync(1))
+                .ReturnsAsync(reservation);
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Returns(Task.CompletedTask);
+
+            Reservation updatedReservation = null;
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Callback<Reservation>(r => updatedReservation = r)
+                .Returns(Task.CompletedTask);
+
+            var service = new ReservationService(repoMock.Object);
+
+            // Assert - verify enum conversion
+            Assert.ThrowsException<ArgumentException>(() => service.UpdateReservation(1, (ReservationStatus)Enum.Parse(typeof(ReservationStatus), invalidStatus, true)));
         }
 
-        //[DataRow("cancelled", false)]
-        //[DataRow("Pending", false)]
-        //[DataRow("thisispending", false)]
-        //[DataRow(" ", false)]
-        //[DataRow(null, false)]
+        [TestMethod]
+        public async Task UpdateReservation_ShouldUpdateStatusNull()
+        {
+            // Arrange
+            var repoMock = new Mock<IReservationRepository>();
+
+            var reservation = new Reservation
+            {
+                Id = 1,
+                Status = "pending"
+            };
+
+            repoMock.Setup(x => x.GetByIdAsync(1))
+                .ReturnsAsync(reservation);
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Returns(Task.CompletedTask);
+
+            Reservation updatedReservation = null;
+
+            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
+                .Callback<Reservation>(r => updatedReservation = r)
+                .Returns(Task.CompletedTask);
+
+            var service = new ReservationService(repoMock.Object);
+
+            // Assert - verify enum conversion
+            Assert.ThrowsException<ArgumentNullException>(() => service.UpdateReservation(1, (ReservationStatus)Enum.Parse(typeof(ReservationStatus), null, true)));
+        }
 
         // Test cases for blackbox Queue number
 
