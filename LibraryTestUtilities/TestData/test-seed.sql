@@ -56,22 +56,31 @@ INSERT INTO `loaner` (`id`, `first_name`, `last_name`, `cpr`, `tlf`, `email`, `p
 (3, 'Lars', 'Nielsen', '050388-9999', '11223344', 'lars.nielsen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
 (4, 'Emma', 'Pedersen', '220498-2222', '22334455', 'emma.pedersen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
 (5, 'Noah', 'Christensen', '300101-3333', '33445566', 'noah.christensen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(11, 'Three', 'Loans', '010101-1111', '11111111', 'three.loans@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog==');
+(11, 'Three', 'Loans', '010101-1111', '11111111', 'three.loans@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(20, 'Freja', 'Larsen', '120398-4567', '28123456', 'freja.larsen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(21, 'Mikkel', 'Østergaard', '031295-8821', '50443322', 'mikkel.ostergaard@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(30, 'Anna', 'Madsen', '140497-3321', '22334455', 'anna.madsen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(31, 'Jonas', 'Kristoffersen', '250699-7712', '55667788', 'jonas.kristoffersen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(32, 'Ida', 'Holm', '090201-1198', '99887766', 'ida.holm@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
+(33, 'Jens', 'Laursen', '010105-7835', '99887766', 'jens.laursen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog==');
 
 INSERT INTO `item`
 (`id`, `name`, `release_year`, `description`, `review_summary`, `media_type`, `image`, `language_id`, `publisher_id`, `average_stars`) VALUES
 (1, 'Harry Potter and the Philosopher''s Stone', 1997, 'A young wizard discovers his destiny.', 'Beloved modern fantasy.', 'book', 'hp1.jpg', 1, 1, 4.8),
 (11, 'Catan', 1995, 'Trade and build settlements.', 'Family strategy staple.', 'boardgame', 'catan.jpg', 1, 8, 4.5),
-(12, 'Pandemic', 2008, 'Work together to stop outbreaks.', 'Top co-op.', 'boardgame', 'pandemic.jpg', 1, 10, 4.6);
+(12, 'Pandemic', 2008, 'Work together to stop outbreaks.', 'Top co-op.', 'boardgame', 'pandemic.jpg', 1, 10, 4.6),
+(20, 'Wingspan', 2019, 'Build bird habitats and attract species.', 'Beautiful engine-builder.', 'boardgame', 'wingspan.jpg', 1, 9, 4.8);
 
 INSERT INTO `inventory` (`id`, `item_id`, `status`, `barcode`, `placement`) VALUES
 (1, 1, 'loaned out', 'BC0001', 'Shelf A1'),
 (2, 1, 'loaned out', 'BC0002', 'Shelf A1'),
+(5, 1, 'loaned out', 'BC0002', 'Shelf A1'),
 (21, 11, 'available', 'BC0021', 'Boardgame 1'),
 (23, 12, 'available', 'BC0023', 'Boardgame 2'),
 (31, 11, 'loaned out', 'BC0031', 'Boardgame 1'),
 (32, 11, 'loaned out', 'BC0032', 'Boardgame 1'),
-(33, 11, 'loaned out', 'BC0033', 'Boardgame 1');
+(33, 11, 'loaned out', 'BC0033', 'Boardgame 1'),
+(40, 20, 'loaned out', 'BC0040', 'Boardgame 3');
 
 INSERT INTO `loan`
 (`id`, `loan_date`, `due_date`, `return_date`, `status`, `loaner_id`, `inventory_id`) VALUES
@@ -79,8 +88,20 @@ INSERT INTO `loan`
 (2, '2026-02-15 12:00:00', '2026-02-28 12:00:00', NULL, 'active', 2, 1),
 (21, '2026-03-01 10:00:00', '2026-03-15 10:00:00', NULL, 'active', 11, 31),
 (22, '2026-03-02 10:00:00', '2026-03-16 10:00:00', NULL, 'active', 11, 32),
-(23, '2026-03-03 10:00:00', '2026-03-17 10:00:00', NULL, 'active', 11, 33);
+(23, '2026-03-03 10:00:00', '2026-03-17 10:00:00', NULL, 'active', 11, 33),
+(27, '2026-03-03 10:00:00', '2026-03-17 10:00:00', NULL, 'active', 21, 5),
+(40, '2026-05-01 10:00:00', '2026-05-15 10:00:00', NULL, 'active', 33, 40);
 
 INSERT INTO `fine`
 (`id`, `amount`, `status`, `created_date`, `paid_date`, `loan_id`) VALUES
-(1, 25.00, 'unpaid', '2026-02-25 09:00:00', NULL, 1);
+(1, 25.00, 'unpaid', '2026-02-25 09:00:00', NULL, 1),
+(2, 120.00, 'unpaid', '2026-05-15 09:00:00', NULL, 27);
+
+INSERT INTO `reservation` 
+(`id`, `loaner_id`, `item_id`, `status`, `queue_number`) VALUES
+(1, 20, 1,  'pending', 1),
+(2, 20, 11, 'ready for pickup', 1),
+(3, 20, 12, 'ready for pickup', 1),
+(10, 30, 20, 'pending', 1),
+(11, 31, 20, 'pending', 2),
+(12, 32, 20, 'pending', 3);

@@ -17,7 +17,8 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
-            var service = new ReservationService(repoMock.Object);
+            var loanMock = new Mock<ILoanRepository>();
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
                     .ReturnsAsync(true);
@@ -51,6 +52,7 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             var reservation = new Reservation
             {
@@ -69,7 +71,7 @@ namespace LibraryTestProject.Services
                 .Callback<Reservation>(r => updatedReservation = r)
                 .Returns(Task.CompletedTask);
 
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             // Act
             var result= await service.UpdateReservation(1, ReservationStatus.Fulfilled);
@@ -82,6 +84,7 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             var reservation = new Reservation
             {
@@ -101,7 +104,7 @@ namespace LibraryTestProject.Services
                 .Callback<Reservation>(r => updatedReservation = r)
                 .Returns(Task.CompletedTask);
 
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             // Act
             var result = await service.UpdateReservation(1, ReservationStatus.ReadyForPickup);
@@ -117,6 +120,7 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             var reservation = new Reservation
             {
@@ -136,7 +140,7 @@ namespace LibraryTestProject.Services
                 .Callback<Reservation>(r => updatedReservation = r)
                 .Returns(Task.CompletedTask);
 
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             // Assert - verify enum conversion
             Assert.ThrowsException<ArgumentException>(() => service.UpdateReservation(1, (ReservationStatus)Enum.Parse(typeof(ReservationStatus), invalidStatus, true)));
@@ -147,6 +151,7 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             var reservation = new Reservation
             {
@@ -166,7 +171,7 @@ namespace LibraryTestProject.Services
                 .Callback<Reservation>(r => updatedReservation = r)
                 .Returns(Task.CompletedTask);
 
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             // Assert - verify enum conversion
             Assert.ThrowsException<ArgumentNullException>(() => service.UpdateReservation(1, (ReservationStatus)Enum.Parse(typeof(ReservationStatus), null, true)));
@@ -195,7 +200,8 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
-            var service = new ReservationService(repoMock.Object);
+            var loanMock = new Mock<ILoanRepository>();
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
                     .ReturnsAsync(true);
@@ -234,7 +240,8 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
-            var service = new ReservationService(repoMock.Object);
+            var loanMock = new Mock<ILoanRepository>();
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
                     .ReturnsAsync(true);
@@ -264,7 +271,8 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
-            var service = new ReservationService(repoMock.Object);
+            var loanMock = new Mock<ILoanRepository>();
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
                     .ReturnsAsync(true);
@@ -298,7 +306,8 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
-            var service = new ReservationService(repoMock.Object);
+            var loanMock = new Mock<ILoanRepository>();
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             var reservations = new List<Reservation>();
 
@@ -355,27 +364,28 @@ namespace LibraryTestProject.Services
         public async Task TestAmountOfReservationsValid(int currentReservations)
         {
             // Arrange
-            var reservationRepositoryMock = new Mock<IReservationRepository>();
+            var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
             var fakeReservations = Enumerable
                 .Range(0, currentReservations)
                 .Select(i => new Reservation())
                 .ToList();
-            reservationRepositoryMock
+            repoMock
             .Setup(x => x.GetByItemIdAsync(It.IsAny<int>()))
              .ReturnsAsync(new List<Reservation>());
-            reservationRepositoryMock
+            repoMock
             .Setup(x => x.GetByLoanerId(It.IsAny<int>()))
             .Returns(Task.FromResult(fakeReservations));
-            reservationRepositoryMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
                     .ReturnsAsync(() => true);
-            reservationRepositoryMock
+            repoMock
             .Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
         .ReturnsAsync(true);
 
-            reservationRepositoryMock
+            repoMock
                 .Setup(x => x.LoanerExistsAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
-            var service = new ReservationService(reservationRepositoryMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
             // Act
             var dto = new CreateReservationDto
             {
@@ -391,26 +401,27 @@ namespace LibraryTestProject.Services
         public async Task TestAmountOfReservationsInvalid(int currentReservations)
         {
             // Arrange
-            var reservationRepositoryMock = new Mock<IReservationRepository>();
+            var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             var fakeReservations = Enumerable
                 .Range(0, currentReservations)
                 .Select(i => new Reservation())
                 .ToList();
 
-            reservationRepositoryMock
+            repoMock
             .Setup(x => x.GetByLoanerId(It.IsAny<int>()))
             .Returns(Task.FromResult(fakeReservations));
-            reservationRepositoryMock
+            repoMock
             .Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
             .ReturnsAsync(true);
-            reservationRepositoryMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
+            repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
                     .ReturnsAsync(() => true);
 
-            reservationRepositoryMock
+            repoMock
                 .Setup(x => x.LoanerExistsAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
-            var service = new ReservationService(reservationRepositoryMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             // Act
             var dto = new CreateReservationDto
@@ -427,6 +438,7 @@ namespace LibraryTestProject.Services
         {
             // Arrange
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
@@ -448,7 +460,7 @@ namespace LibraryTestProject.Services
                 });
             repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
                     .ReturnsAsync(() => true);
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             var dto = new CreateReservationDto
             {
@@ -482,11 +494,12 @@ namespace LibraryTestProject.Services
         public async Task User_Cancels_NonexistentRerservation()
         {
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             repoMock.Setup(x => x.GetByLoanerId(1))
                 .ReturnsAsync(new List<Reservation>());
 
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             await Assert.ThrowsExceptionAsync<KeyNotFoundException>(async () =>
             {
@@ -498,11 +511,12 @@ namespace LibraryTestProject.Services
         public async Task CreateReservation_ShouldThrow_WhenItemDoesNotExist()
         {
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
                 .ReturnsAsync(false);
 
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             var dto = new CreateReservationDto
             {
@@ -517,6 +531,8 @@ namespace LibraryTestProject.Services
         public async Task CreateReservation_ShouldFail_WhenItemIsAvailable()
         {
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
+
             repoMock.Setup(x => x.ItemExistsAsync(It.IsAny<int>()))
                 .ReturnsAsync(true);
             repoMock.Setup(x => x.LoanerExistsAsync(It.IsAny<int>()))
@@ -527,7 +543,7 @@ namespace LibraryTestProject.Services
                 .ReturnsAsync(new List<Reservation>());
             repoMock.Setup(x => x.ItemIsUnavailable(It.IsAny<int>()))
                 .ReturnsAsync(false);
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
             var dto = new CreateReservationDto
             {
                 ItemId = 1
@@ -541,6 +557,7 @@ namespace LibraryTestProject.Services
         public async Task CancelReservation_OwnReservation()
         {
             var repoMock = new Mock<IReservationRepository>();
+            var loanMock = new Mock<ILoanRepository>();
 
             repoMock.Setup(x => x.GetByLoanerId(1))
                 .ReturnsAsync(new List<Reservation>
@@ -563,7 +580,7 @@ namespace LibraryTestProject.Services
             repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
                 .Returns(Task.CompletedTask);
 
-            var service = new ReservationService(repoMock.Object);
+            var service = new ReservationService(repoMock.Object, loanMock.Object);
 
             var result = await service.DeleteReservation(10, 1);
 
