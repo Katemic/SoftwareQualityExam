@@ -35,6 +35,10 @@ namespace LibraryAPI.Services
             {
                 throw new InvalidOperationException("Item is currently available for loan.");
             }   
+            if(await UserHasUnpaidFines(loanerId))
+            {
+                throw new InvalidOperationException("Loaner has unpaid fines and cannot make a reservation.");
+            }
             var reservation = new Reservation
             {
                 LoanerId = loanerId,
@@ -165,6 +169,16 @@ namespace LibraryAPI.Services
                 return "fulfilled";
             }
             throw new KeyNotFoundException("This is not a valid value");
+        }
+
+        private async Task<bool> UserHasUnpaidFines(int loanerId)
+        {
+            var unpaidFines = await _reservationRepository.GetUnpaidFinesByLoanerId(loanerId);
+            if (unpaidFines != null && unpaidFines.Count > 0)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

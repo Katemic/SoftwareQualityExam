@@ -79,7 +79,7 @@ namespace LibraryTestProject.Services
             var service = new ReservationService(repoMock.Object);
 
             // Act
-            var result = await service.UpdateReservation(1, ReservationStatus.ReadyForPickup);
+            var result = await service.UpdateReservation(1, (ReservationStatus)Enum.Parse(typeof(ReservationStatus), "Cancelled"));
             var result2= await service.UpdateReservation(2, ReservationStatus.Fulfilled);
 
             // Assert - verify enum conversion

@@ -1,6 +1,7 @@
 ﻿using LibraryAPI.DTOs;
 using LibraryAPI.Services;
 using LibraryAPI.Services.Interfaces;
+using LibrarySQLBackend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -32,12 +33,22 @@ namespace LibraryAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllReservations()
         {
+            try { 
             var reservations = await _reservationService.GetAllReservations();
             return Ok(reservations);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
         [HttpGet("MyReservations")]
         public async Task<IActionResult> GetAllLoanersReservations()
         {
+            try { 
             var id = int.Parse(
              User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var reservations = await _reservationService.GetAllLoanersReservation(id);
@@ -46,21 +57,40 @@ namespace LibraryAPI.Controllers
                 return NotFound();
             }
             return Ok(reservations);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
         [HttpPost]
-        public async Task<IActionResult> CreateLoan(CreateReservationDto dto)
+        public async Task<IActionResult> CreateReservation(CreateReservationDto dto)
         {
-            var loanerId = int.Parse(
+
+            try
+            {
+                var loanerId = int.Parse(
              User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var created = await _reservationService.CreateReservation(dto, loanerId);
-
-            return Ok(created);
+                var created = await _reservationService.CreateReservation(dto, loanerId);
+                return Ok(created);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
 
         [HttpPut("Update/{id}")] 
         public async Task<IActionResult> UpdateReservation(int id, ReservationStatus status) 
         {
+            try { 
             var updatedReservation = await _reservationService.UpdateReservation(id, status);
 
             if (updatedReservation == null)
@@ -69,10 +99,19 @@ namespace LibraryAPI.Controllers
             }
 
             return Ok(updatedReservation);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
         [HttpDelete("{itemId}")]
         public async Task<IActionResult> DeleteReservation(int itemId)
         {
+            try { 
             var loanerId = int.Parse(
              User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -84,6 +123,14 @@ namespace LibraryAPI.Controllers
             }
 
             return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
         }
     }
 }
