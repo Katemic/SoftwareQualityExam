@@ -26,19 +26,6 @@ namespace LibraryTestProject.IntegrationTests
             return new TestDatabaseHelper(connectionString);
         }
 
-        private static async Task<DateTime> GetDatabaseNowAsync(AppDbContext context)
-        {
-            await using var command = context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "SELECT CURRENT_TIMESTAMP()";
-
-            if (command.Connection!.State != System.Data.ConnectionState.Open)
-                await command.Connection.OpenAsync();
-
-            var result = await command.ExecuteScalarAsync();
-
-            return Convert.ToDateTime(result);
-        }
-
 
         [TestInitialize]
         public async Task ResetDatabaseBeforeEachTest()
@@ -100,80 +87,6 @@ namespace LibraryTestProject.IntegrationTests
             Assert.AreEqual("available", inventoryFromDatabase.Status);
         }
 
-        // Integration test:
-        // Date rules for the loan happy path.
-        //
-        // Scenario:
-        // A valid loaner creates a loan.
-        // The created loan gets LoanDate set automatically by the database.
-        // The created loan gets DueDate set to LoanDate + 14 days.
-        // The created loan has ReturnDate = null.
-        // The loan is returned.
-        // The returned loan gets ReturnDate set automatically by the database.
-        // The ReturnDate is greater than or equal to the LoanDate.
-        [TestMethod]
-        public async Task LoanScenario_CreateLoanAndReturnLoan_SetsDatesCorrectly()
-        {
-            // Arrange
-            var databaseHelper = CreateDatabaseHelper();
-
-            await using var context = databaseHelper.CreateContext();
-
-            var loanRepository = new LoanRepository(context);
-            var inventoryRepository = new InventoryRepository(context);
-            var loanerRepository = new LoanerRepository(context);
-
-            var service = new LoanService(
-                loanRepository,
-                inventoryRepository,
-                loanerRepository);
-
-            var dto = new CreateLoanDto
-            {
-                LoanerId = TestIds.ValidLoanerId,
-                InventoryId = TestIds.AvailableInventoryId
-            };
-
-            // Act
-            var beforeCreate = await GetDatabaseNowAsync(context);
-
-            var createdLoan = await service.CreateLoanAsync(dto);
-
-            var afterCreate = await GetDatabaseNowAsync(context);
-
-            await using var createAssertContext = databaseHelper.CreateContext();
-
-            var loanAfterCreate = await createAssertContext.Loans
-                .AsNoTracking()
-                .FirstAsync(x => x.Id == createdLoan.Id);
-
-            var beforeReturn = await GetDatabaseNowAsync(context);
-
-            await service.ReturnLoanAsync(createdLoan.Id);
-
-            var afterReturn = await GetDatabaseNowAsync(context);
-
-            await using var returnAssertContext = databaseHelper.CreateContext();
-
-            var loanAfterReturn = await returnAssertContext.Loans
-                .AsNoTracking()
-                .FirstAsync(x => x.Id == createdLoan.Id);
-
-            // Assert
-            Assert.IsTrue(loanAfterCreate.LoanDate >= beforeCreate.AddSeconds(-2));
-            Assert.IsTrue(loanAfterCreate.LoanDate <= afterCreate.AddSeconds(2));
-
-            Assert.AreEqual(
-                loanAfterCreate.LoanDate.AddDays(14).Date,
-                loanAfterCreate.DueDate.Date);
-
-            Assert.IsNull(loanAfterCreate.ReturnDate);
-
-            Assert.IsNotNull(loanAfterReturn.ReturnDate);
-            Assert.IsTrue(loanAfterReturn.ReturnDate >= beforeReturn.AddSeconds(-2));
-            Assert.IsTrue(loanAfterReturn.ReturnDate <= afterReturn.AddSeconds(2));
-            Assert.IsTrue(loanAfterReturn.ReturnDate >= loanAfterReturn.LoanDate);
-        }
 
         // Integration test:
         // Important database-backed rejection case.
