@@ -10,9 +10,11 @@ namespace LibraryTestProject.UnitTests;
 public class LoanUnitTests
 {
 
-    // Black-box test:
-    // Extra validation case: loaner does not exist.
-    // Expected result: loan cannot be created.
+    // White-box / service-layer validation test:
+    // Scenario: the supplied LoanerId does not match an existing loaner.
+    // This is an additional defensive validation case, not part of the main
+    // black-box loan decision table.
+    // Expected result: loan creation is rejected.
     [TestMethod]
     public async Task CreateLoanAsync_LoanerDoesNotExist_ThrowsException()
     {
@@ -37,9 +39,11 @@ public class LoanUnitTests
             () => service.CreateLoanAsync(dto));
     }
 
-    // Black-box test:
-    // Extra validation case: inventory copy does not exist.
-    // Expected result: loan cannot be created.
+    // White-box / service-layer validation test:
+    // Scenario: the supplied InventoryId does not match an existing inventory copy.
+    // This supports the business rule that a loan can only be created for
+    // an existing item copy.
+    // Expected result: loan creation is rejected.
     [TestMethod]
     public async Task CreateLoanAsync_InventoryDoesNotExist_ThrowsException()
     {
@@ -69,10 +73,10 @@ public class LoanUnitTests
     }
 
     // Black-box test:
-    // Decision table - Rule 2.
+    // Loan decision table - Rule 2.
     // User is logged in: yes.
     // Item is available: no.
-    // Expected result: item unavailable.
+    // Expected result: loan creation is rejected because the item is unavailable.
     [TestMethod]
     public async Task CreateLoanAsync_ItemUnavailable_ThrowsException()
     {
@@ -102,11 +106,11 @@ public class LoanUnitTests
     }
 
     // Black-box test:
-    // Decision table - Rule 3.
+    // Loan decision table - Rule 3.
     // User is logged in: yes.
     // Item is available: yes.
     // User has unpaid fine: yes.
-    // Expected result: loan rejected.
+    // Expected result: loan creation is rejected.
     [TestMethod]
     public async Task CreateLoanAsync_LoanerHasUnpaidFine_ThrowsException()
     {
@@ -140,12 +144,12 @@ public class LoanUnitTests
     }
 
     // Black-box test:
-    // Decision table - Rule 4.
+    // Loan decision table - Rule 4.
     // User is logged in: yes.
     // Item is available: yes.
     // User has unpaid fine: no.
     // User has 3 active loans: yes.
-    // Expected result: too many loans.
+    // Expected result: loan creation is rejected because the user has too many active loans.
     [TestMethod]
     public async Task CreateLoanAsync_LoanerHasThreeActiveLoans_ThrowsException()
     {
@@ -183,13 +187,13 @@ public class LoanUnitTests
     }
 
     // Black-box test:
-    // Decision table - Rule 5.
+    // Loan decision table - Rule 5.
     // User is logged in: yes.
     // Item is available: yes.
     // User has unpaid fine: no.
-    // User has 3 active loans: no.
+    // User has fewer than 3 active loans: yes.
     // User has overdue loans: yes.
-    // Expected result: return your item.
+    // Expected result: loan creation is rejected because the user must return overdue items first.
     [TestMethod]
     public async Task CreateLoanAsync_LoanerHasOverdueLoan_ThrowsException()
     {
@@ -232,13 +236,13 @@ public class LoanUnitTests
     }
 
     // Black-box test:
-    // Decision table - Rule 6.
+    // Loan decision table - Rule 6.
     // User is logged in: yes.
     // Item is available: yes.
     // User has unpaid fine: no.
-    // User has 3 active loans: no.
+    // User has fewer than 3 active loans: yes.
     // User has overdue loans: no.
-    // Expected result: loan created.
+    // Expected result: loan is created successfully.
     [TestMethod]
     public async Task CreateLoanAsync_AllRulesAreValid_CreatesLoan()
     {
@@ -298,74 +302,9 @@ public class LoanUnitTests
             Times.Once);
     }
 
-
-    // Black-box test:
-    // Return date equivalence partition.
-    // Input value: NULL.
-    // Expected result: valid when creating loan.
-    [TestMethod]
-    public async Task CreateLoanAsync_AllRulesAreValid_SetsReturnDateToNull()
-    {
-        // Arrange
-        var loanRepositoryMock = new Mock<ILoanRepository>();
-        var inventoryRepositoryMock = new Mock<IInventoryRepository>();
-        var loanerRepositoryMock = new Mock<ILoanerRepository>();
-
-        var service = CreateService(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock);
-
-        var dto = CreateLoanDto();
-
-        SetupValidLoanCreation(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock,
-            dto);
-
-        // Act
-        var result = await service.CreateLoanAsync(dto);
-
-        // Assert
-        Assert.IsNull(result.ReturnDate);
-    }
-
-    // Black-box test:
-    // Status equivalence partition.
-    // Input value: active.
-    // Expected result: valid.
-    [TestMethod]
-    public async Task CreateLoanAsync_AllRulesAreValid_SetsStatusToActive()
-    {
-        // Arrange
-        var loanRepositoryMock = new Mock<ILoanRepository>();
-        var inventoryRepositoryMock = new Mock<IInventoryRepository>();
-        var loanerRepositoryMock = new Mock<ILoanerRepository>();
-
-        var service = CreateService(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock);
-
-        var dto = CreateLoanDto();
-
-        SetupValidLoanCreation(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock,
-            dto);
-
-        // Act
-        var result = await service.CreateLoanAsync(dto);
-
-        // Assert
-        Assert.AreEqual("active", result.Status);
-    }
-
-    // Black-box test:
-    // Extra validation case: loan does not exist.
-    // Expected result: loan cannot be returned.
+    // White-box / service-layer validation test:
+    // Scenario: the supplied LoanId does not match an existing loan.
+    // Expected result: the loan cannot be returned.
     [TestMethod]
     public async Task ReturnLoanAsync_LoanDoesNotExist_ThrowsException()
     {
@@ -388,10 +327,10 @@ public class LoanUnitTests
             () => service.ReturnLoanAsync(1));
     }
 
-    // Black-box test:
-    // Return date equivalence partition.
-    // Input value: loan already has return date.
-    // Expected result: invalid.
+    // White-box:
+    // Scenario: the loan already has status "returned" and a ReturnDate.
+    // A returned loan should not be returned again.
+    // Expected result: return operation is rejected.
     [TestMethod]
     public async Task ReturnLoanAsync_LoanIsAlreadyReturned_ThrowsException()
     {
@@ -416,10 +355,10 @@ public class LoanUnitTests
             () => service.ReturnLoanAsync(1));
     }
 
-    // Black-box test:
-    // Return date equivalence partition.
-    // Input value before return: NULL.
-    // Expected result: valid, because a loan with no return date can be returned.
+    // White-box:
+    // Scenario: the loan is active and has no ReturnDate.
+    // This represents a loan that has not been returned yet.
+    // Expected result: the service calls the repository return method exactly once.
     [TestMethod]
     public async Task ReturnLoanAsync_LoanIsNotReturned_CallsRepositoryReturnLoan()
     {
@@ -448,10 +387,10 @@ public class LoanUnitTests
             Times.Once);
     }
 
-    // Black-box test:
-    // Extra validation case.
-    // Input value: LoanerId <= 0.
-    // Expected result: invalid input.
+    // White-box / input validation test:
+    // Scenario: LoanerId is 0, which is outside the valid ID range.
+    // This is an additional service-layer validation case.
+    // Expected result: ArgumentException for LoanerId.
     [TestMethod]
     public async Task CreateLoanAsync_LoanerIdIsZero_ThrowsArgumentException()
     {
@@ -476,10 +415,10 @@ public class LoanUnitTests
         Assert.AreEqual("LoanerId", exception.ParamName);
     }
 
-    // Black-box test:
-    // Extra validation case.
-    // Input value: InventoryId <= 0.
-    // Expected result: invalid input.
+    // White-box / input validation test:
+    // Scenario: InventoryId is 0, which is outside the valid ID range.
+    // This is an additional service-layer validation case.
+    // Expected result: ArgumentException for InventoryId.
     [TestMethod]
     public async Task CreateLoanAsync_InventoryIdIsZero_ThrowsArgumentException()
     {

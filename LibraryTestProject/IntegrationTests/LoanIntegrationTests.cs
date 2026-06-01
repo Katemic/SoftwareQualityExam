@@ -35,17 +35,28 @@ namespace LibraryTestProject.IntegrationTests
             await databaseHelper.ResetAndSeedDatabaseAsync();
         }
 
-        // Integration test:
-        // Broad happy path based on Khorikov's approach.
+   
+        // Broad database-backed happy path scenario.
         //
-        // Scenario:
-        // A valid loaner borrows an available inventory copy.
-        // The loan is saved to the database.
-        // The inventory copy becomes loaned out.
-        // The same loan is returned.
-        // The loan status becomes returned.
-        // The return date is saved.
-        // The inventory copy becomes available again.
+        // Black-box relation:
+        // Covers the valid loan decision table rule:
+        // - user is valid/logged in
+        // - item is available
+        // - user has no unpaid fine
+        // - user has fewer than 3 active loans
+        // - user has no overdue loans
+        // Expected result: loan is created.
+        //
+        // White-box / integration relation:
+        // Verifies that LoanService, LoanRepository, InventoryRepository,
+        // Entity Framework, and the test database work together correctly.
+        // Also verifies the observable system-generated effects:
+        // - loan is persisted
+        // - inventory status changes to "loaned out" during loan creation
+        // - loan can be returned
+        // - loan status changes to "returned"
+        // - ReturnDate is set by the backend/database
+        // - inventory status changes back to "available".
         [TestMethod]
         public async Task LoanScenario_CreateLoanAndReturnLoan_UpdatesDatabaseCorrectly()
         {
@@ -88,13 +99,19 @@ namespace LibraryTestProject.IntegrationTests
         }
 
 
-        // Integration test:
-        // Important database-backed rejection case.
+   
+        // Database-backed rejection scenario.
         //
-        // Scenario:
-        // A loaner with an unpaid fine tries to create a loan.
-        // Expected result:
-        // The loan is rejected.
+        // Black-box relation:
+        // Loan decision table - Rule 3.
+        // User is valid/logged in: yes.
+        // Item is available: yes.
+        // User has unpaid fine: yes.
+        // Expected result: loan creation is rejected.
+        //
+        // White-box / integration relation:
+        // Verifies that the service correctly detects an unpaid fine
+        // through the repository and seeded test database.
         [TestMethod]
         public async Task LoanScenario_LoanerHasUnpaidFine_RejectsLoan()
         {
@@ -123,13 +140,20 @@ namespace LibraryTestProject.IntegrationTests
                 () => service.CreateLoanAsync(dto));
         }
 
-        // Integration test:
-        // Important database-backed rejection case.
+        // Database-backed rejection scenario.
         //
-        // Scenario:
-        // A loaner with an overdue loan tries to create a loan.
-        // Expected result:
-        // The loan is rejected.
+        // Black-box relation:
+        // Loan decision table - Rule 5.
+        // User is valid/logged in: yes.
+        // Item is available: yes.
+        // User has unpaid fine: no.
+        // User has fewer than 3 active loans: yes.
+        // User has overdue loan: yes.
+        // Expected result: loan creation is rejected.
+        //
+        // White-box / integration relation:
+        // Verifies that the service correctly detects overdue loans
+        // through the repository and seeded test database.
         [TestMethod]
         public async Task LoanScenario_LoanerHasOverdueLoan_RejectsLoan()
         {
@@ -158,14 +182,19 @@ namespace LibraryTestProject.IntegrationTests
                 () => service.CreateLoanAsync(dto));
         }
 
-        // Integration test:
-        // Important database-backed rejection case.
+        // Database-backed rejection scenario.
         //
-        // Scenario:
-        // A loaner already has 3 active loans in the database.
-        // The loaner tries to create another loan.
-        // Expected result:
-        // The loan is rejected.
+        // Black-box relation:
+        // Loan decision table - Rule 4.
+        // User is valid/logged in: yes.
+        // Item is available: yes.
+        // User has unpaid fine: no.
+        // User has 3 active loans: yes.
+        // Expected result: loan creation is rejected.
+        //
+        // White-box / integration relation:
+        // Verifies that the service correctly counts active loans
+        // through the repository and seeded test database.
         [TestMethod]
         public async Task LoanScenario_LoanerHasThreeActiveLoans_RejectsLoan()
         {
