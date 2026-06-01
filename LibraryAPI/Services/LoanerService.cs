@@ -102,9 +102,7 @@ namespace LibraryAPI.Services
             if (!subscriber.All(char.IsDigit))
                 throw new ArgumentException("Subscriber number must contain only digits.");
 
-            int totalDigits = countryCode.Length + subscriber.Length;
-
-            if (totalDigits < 7 || totalDigits > 15)
+            if (subscriber.Length < 7 || subscriber.Length > 15)
                 throw new ArgumentException("Phone number must contain between 7 and 15 digits.");
 
             if (subscriber.All(c => c == '0'))
