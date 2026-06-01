@@ -505,40 +505,4 @@ public class LoanUnitTests
         };
     }
 
-    private static void SetupValidLoanCreation(
-        Mock<ILoanRepository> loanRepositoryMock,
-        Mock<IInventoryRepository> inventoryRepositoryMock,
-        Mock<ILoanerRepository> loanerRepositoryMock,
-        CreateLoanDto dto)
-    {
-        loanerRepositoryMock
-            .Setup(x => x.GetByIdAsync(dto.LoanerId))
-            .ReturnsAsync(CreateLoaner());
-
-        inventoryRepositoryMock
-            .Setup(x => x.GetByIdAsync(dto.InventoryId))
-            .ReturnsAsync(CreateInventory(status: "available"));
-
-        loanRepositoryMock
-            .Setup(x => x.HasUnpaidFineAsync(dto.LoanerId))
-            .ReturnsAsync(false);
-
-        loanRepositoryMock
-            .Setup(x => x.CountActiveLoansAsync(dto.LoanerId))
-            .ReturnsAsync(0);
-
-        loanRepositoryMock
-            .Setup(x => x.HasOverdueLoanAsync(
-                dto.LoanerId))
-            .ReturnsAsync(false);
-
-        loanRepositoryMock
-            .Setup(x => x.CreateLoanAsync(It.IsAny<Loan>()))
-            .ReturnsAsync((Loan loan) =>
-            {
-                loan.Id = 1;
-                return loan;
-            });
-    }
-
 }
