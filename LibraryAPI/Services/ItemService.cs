@@ -73,41 +73,41 @@ namespace LibraryAPI.Services
             return itemDto;
         }
 
-        public async Task<ItemDetailsDto> AddAsync(CreateItemDto dto)
+        public async Task<ItemDetailsDto> AddAsync(CreateItemDto itemDto)
         {
-            var creators = await _itemRepository.GetCreatorsByIdsAsync(dto.CreatorIds);
-            var genres = await _itemRepository.GetGenresByIdsAsync(dto.GenreIds);
-            var tags = await _itemRepository.GetTagsByIdsAsync(dto.TagIds);
+            var creators = await _itemRepository.GetCreatorsByIdsAsync(itemDto.CreatorIds);
+            var genres = await _itemRepository.GetGenresByIdsAsync(itemDto.GenreIds);
+            var tags = await _itemRepository.GetTagsByIdsAsync(itemDto.TagIds);
 
             var item = new Item
             {
-                Name = dto.Name,
-                ReleaseYear = (short?)dto.ReleaseYear,
-                Description = dto.Description,
-                MediaType = dto.MediaType,
-                Image = dto.Image,
-                LanguageId = (int)dto.LanguageId,
-                PublisherId = (int)dto.PublisherId,
+                Name = itemDto.Name,
+                ReleaseYear = (short?)itemDto.ReleaseYear,
+                Description = itemDto.Description,
+                MediaType = itemDto.MediaType,
+                Image = itemDto.Image,
+                LanguageId = (int)itemDto.LanguageId,
+                PublisherId = (int)itemDto.PublisherId,
 
                 Creators = creators,
                 Genres = genres,
                 Tags = tags,
 
-                Book = dto.MediaType == "Book" && dto.Book != null
+                Book = itemDto.MediaType == "Book" && itemDto.Book != null
             ? new Book
             {
-                Isbn = dto.Book.Isbn,
-                NoOfPages = (short?)dto.Book.NoOfPages,
-                Version = dto.Book.Version
+                Isbn = itemDto.Book.Isbn,
+                NoOfPages = (short?)itemDto.Book.NoOfPages,
+                Version = itemDto.Book.Version
             }
             : null,
 
-                Boardgame = dto.MediaType == "Boardgame" && dto.Boardgame != null
+                Boardgame = itemDto.MediaType == "Boardgame" && itemDto.Boardgame != null
             ? new Boardgame
             {
-                NoOfPlayers = dto.Boardgame?.NoOfPlayers,
-                PlayTime = dto.Boardgame?.PlayTime,
-                AgeGroup = dto.Boardgame?.AgeGroup
+                NoOfPlayers = itemDto.Boardgame?.NoOfPlayers,
+                PlayTime = itemDto.Boardgame?.PlayTime,
+                AgeGroup = itemDto.Boardgame?.AgeGroup
             }
             : null
             };
