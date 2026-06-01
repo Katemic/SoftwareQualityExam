@@ -59,7 +59,7 @@ public class LoanerTestsPassword
             .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
             .ReturnsAsync((Loaner l) => l);
     }
-
+    // Password cannot be null or empty
     [DataTestMethod]
     [DataRow(null)]
     [DataRow("")]
@@ -72,6 +72,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password can't be less than 8 characters
     [DataTestMethod]
     [DataRow("Passw0")] // 6 chars
     [DataRow("Passw0r")] // 7 chars
@@ -84,6 +85,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password must contain 8 characters
     [DataTestMethod]
     [DataRow("Passw0rd")] // 8
     [DataRow("Password1")]
@@ -99,6 +101,7 @@ public class LoanerTestsPassword
 
         Assert.IsNotNull(result);
     }
+    // Password exceeding the maximum allowed length should throw
     [DataTestMethod]
     [DataRow(63)] // 1 uppercase + 63 lowercase + 1 number = 65 chars
     [DataRow(64)] // 1 uppercase + 63 lowercase + 1 number = 66 chars
@@ -116,6 +119,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password may not contain whitespace characters
     [TestMethod]
     public async Task RegisterAsync_PasswordContainsSpaces_ThrowsException()
     {
@@ -126,6 +130,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password must contain at least one numeric digit
     [TestMethod]
     public async Task RegisterAsync_PasswordOnlyLetters_ThrowsException()
     {
@@ -136,6 +141,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password must contain both letters and numbers
     [TestMethod]
     public async Task RegisterAsync_PasswordOnlyNumbers_ThrowsException()
     {
@@ -146,6 +152,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password must contain at least one uppercase letter
     [TestMethod]
     public async Task RegisterAsync_PasswordNoUppercase_ThrowsException()
     {
@@ -156,6 +163,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password must contain at least one lowercase letter
     [TestMethod]
     public async Task RegisterAsync_PasswordNoLowercase_ThrowsException()
     {
@@ -166,6 +174,7 @@ public class LoanerTestsPassword
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Password meeting all validation requirements should register successfully
     [DataTestMethod]
     [DataRow("Passw0rd")]
     [DataRow("Password1")]

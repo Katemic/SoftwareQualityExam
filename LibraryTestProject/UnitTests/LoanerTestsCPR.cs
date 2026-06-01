@@ -59,7 +59,7 @@ public class LoanerTestsCPR
             .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
             .ReturnsAsync((Loaner l) => l);
     }
-
+    // CPR cannot be null
     [TestMethod]
     public async Task RegisterAsync_CprIsNull_ThrowsException()
     {
@@ -70,7 +70,7 @@ public class LoanerTestsCPR
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // CPR cannot be empty
     [TestMethod]
     public async Task RegisterAsync_CprIsEmpty_ThrowsException()
     {
@@ -81,7 +81,7 @@ public class LoanerTestsCPR
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // CPR may only contain numeric digits
     [TestMethod]
     public async Task RegisterAsync_CprContainsLetters_ThrowsException()
     {
@@ -92,7 +92,7 @@ public class LoanerTestsCPR
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // CPR must contain a date in the first six digits
     [TestMethod]
     public async Task RegisterAsync_CprInvalidDate_ThrowsException()
     {
@@ -103,6 +103,7 @@ public class LoanerTestsCPR
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // CPR must be entered without separators such as dashes
     [TestMethod]
     public async Task RegisterAsync_CprInvalidDash_ThrowsException()
     {
@@ -113,6 +114,7 @@ public class LoanerTestsCPR
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Valid 10-digit CPR should register successfully
     [TestMethod]
     public async Task RegisterAsync_CprValid_ReturnsLoaner()
     {
@@ -126,13 +128,13 @@ public class LoanerTestsCPR
 
         Assert.AreEqual(dto.Cpr, result.Cpr);
     }
-
+    // CPR must contain exactly 10 digits
     [DataTestMethod]
     [DataRow("01012012")] // 8 digits
     [DataRow("010120123")] // 9 digits
     [DataRow("01012011234")] // 11 digits
     [DataRow("010120112345")] // 12 digits
-    public async Task RegisterAsync_CprLength9_ThrowsException(string cpr)
+    public async Task RegisterAsync_CprLength_ThrowsException(string cpr)
     {
         StartMock();
         var dto = ValidDto();
@@ -141,7 +143,7 @@ public class LoanerTestsCPR
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-    //10 digits
+    // CPR with exactly 10 digits should be accepted
     [TestMethod]
     public async Task RegisterAsync_CprLength10_IsValid()
     {

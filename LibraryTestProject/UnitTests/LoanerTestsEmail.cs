@@ -59,7 +59,7 @@ public class LoanerTestsEmail
             .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
             .ReturnsAsync((Loaner l) => l);
     }
-
+    // Email is required: null or empty should throw
     [DataTestMethod]
     [DataRow(null)]
     [DataRow("")]
@@ -72,6 +72,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Email length below minimum allowed length should throw
     [DataTestMethod]
     [DataRow("a@.c")] //4 characters
     [DataRow("a@b.d")] //5 characters
@@ -84,6 +85,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Email length exceeding maximum allowed length should throw
     [DataTestMethod]
     [DataRow(51)] //255 characters
     [DataRow(52)] //256 characters
@@ -102,7 +104,8 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-    [TestMethod] //loacal empty/too short
+    // Local part cannot be empty
+    [TestMethod]
     public async Task RegisterAsync_LocalEmpty_ThrowsException()
     {
         StartMock();
@@ -114,6 +117,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Local part exceeding 64 characters should throw
     [DataTestMethod]
     [DataRow(65)] //local 65 characters
     [DataRow(66)] //local 66 characters
@@ -130,6 +134,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Domain part below minimum valid length should throw
     [DataTestMethod] // too short
     [DataRow("test@.d")]
     [DataRow("test@t.d")]
@@ -142,7 +147,8 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-    [TestMethod] // domain empty
+    // Domain part cannot be empty
+    [TestMethod]
     public async Task RegisterAsync_DomainEmpty_ThrowsException()
     {
         StartMock();
@@ -156,6 +162,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Domain part exceeding maximum allowed length should throw
     [DataTestMethod]
     [DataRow(250)] //domain 255 charators
     [DataRow(251)] //domain 256 charators
@@ -172,6 +179,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Email must contain exactly one '@' character
     [DataTestMethod]
     [DataRow("testexample.com")]
     [DataRow("test@@example.com")]
@@ -184,6 +192,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Spaces are not allowed in email addresses
     [TestMethod]
     public async Task RegisterAsync_EmailContainsSpaces_ThrowsException()
     {
@@ -194,6 +203,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Consecutive dots are not allowed in local or domain parts
     [DataTestMethod]
     [DataRow("Te..st@example.com")]
     [DataRow("Test@example..com")]
@@ -206,6 +216,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Local part cannot start or end with a dot
     [DataTestMethod]
     [DataRow(".Test@example.com")]
     [DataRow("Test.@example.com")]
@@ -218,6 +229,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Domain part cannot start or end with a dot
     [DataTestMethod]
     [DataRow("Test@.example.com")]
     [DataRow("Test@example.com.")]
@@ -230,6 +242,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Domain must contain at least one dot separator
     [TestMethod]
     public async Task RegisterAsync_DomainMissingDot_ThrowsException()
     {
@@ -240,6 +253,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Local part may only contain permitted ASCII characters
     [TestMethod]
     public async Task RegisterAsync_InvalidLocalCharacters_ThrowsException()
     {
@@ -250,6 +264,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Domain part may only contain permitted ASCII characters
     [TestMethod]
     public async Task RegisterAsync_InvalidDomainCharacters_ThrowsException()
     {
@@ -260,6 +275,7 @@ public class LoanerTestsEmail
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Minimum-length valid email addresses should register successfully
     [DataTestMethod]
     [DataRow("a@b.ce")] //4 charators
     [DataRow("a@b.com")] //5 charators
@@ -275,6 +291,7 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(email, result.Email);
     }
+    // Local part up to 64 characters should be accepted
     [DataTestMethod]
     [DataRow(63)] //local 63 charators
     [DataRow(64)] //local 64 charators
@@ -294,6 +311,7 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(email, result.Email);
     }
+    // Domain part within maximum allowed length should be accepted
     [DataTestMethod]
     [DataRow(249)] //domain 252 charators
     //[DataRow(250)] //domain 253 charators -- Not applicable because total length would be 255 which exceeds limit
@@ -312,6 +330,7 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(email, result.Email);
     }
+    // Dot within local part is valid when not leading, trailing, or consecutive
     [TestMethod]
     public async Task RegisterAsync_LocalValidDot()
     {
@@ -325,6 +344,7 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(dto.Email, result.Email);
     }
+    // Domains may contain subdomains
     [TestMethod]
     public async Task RegisterAsync_DomainCanHaveSubdomain()
     {
@@ -338,6 +358,7 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(dto.Email, result.Email);
     }
+    // Numbers are allowed in the local part
     [TestMethod]
     public async Task RegisterAsync_LocalWithNumbers()
     {
@@ -351,6 +372,7 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(dto.Email, result.Email);
     }
+    // Numbers are allowed in the domain part
     [TestMethod]
     public async Task RegisterAsync_DomainWithNumbers()
     {
@@ -364,6 +386,7 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(dto.Email, result.Email);
     }
+    // Standard email format containing a single '@' should be accepted
     [TestMethod]
     public async Task RegisterAsync_EmailNeedsAt()
     {
@@ -377,8 +400,8 @@ public class LoanerTestsEmail
 
         Assert.AreEqual(dto.Email, result.Email);
     }
-
-    [DataTestMethod] // valid special characters in email
+    // valid special characters in email
+    [DataTestMethod]
     [DataRow("Te+st@example.com")]
     [DataRow("Te!st@example.com")]
     [DataRow("Te#st@example.com")]

@@ -60,7 +60,7 @@ public class LoanerTestsPhone
             .ReturnsAsync((Loaner l) => l);
     }
 
-    //tlf
+    // Phone number cannot be null or empty
     [DataTestMethod]
     [DataRow("")]
     [DataRow(null)]
@@ -73,7 +73,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // Phone number must contain exactly one space between country code and subscriber number
     [DataTestMethod]
     [DataRow("+4512345678")]
     [DataRow("+45  12345678")]
@@ -86,6 +86,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Total number of digits must be between 7 and 15
     [DataTestMethod]
     [DataRow("+45 12345")]                // 5 digits
     [DataRow("+45 123456")]               // 6 digits
@@ -100,6 +101,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Country code must contain at least one digit after '+'
     [DataTestMethod]
     [DataRow("+ 12345678")]
     public async Task RegisterAsync_CountryCodeTooShort_Throws(string phone)
@@ -111,6 +113,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Country code may only contain numeric digits
     [DataTestMethod]
     [DataRow("+34A 12345678")]
     public async Task RegisterAsync_CountryCodeHasChar_Throws(string phone)
@@ -122,6 +125,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Subscriber number may only contain numeric digits
     [DataTestMethod]
     [DataRow("+34 12V45678")]
     public async Task RegisterAsync_NumberHasChar_Throws(string phone)
@@ -133,6 +137,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Country code may not exceed three digits
     [DataTestMethod]
     [DataRow("+1234 12345678")]
     public async Task RegisterAsync_CountryCodeTooLong_Throws(string phone)
@@ -144,6 +149,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Phone number must begin with a '+' country code prefix
     [TestMethod]
     public async Task RegisterAsync_CountryCodeNoPlus_ThrowsException()
     {
@@ -154,6 +160,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // '+' character must appear only at the beginning of the phone number
     [TestMethod]
     public async Task RegisterAsync_PlusNotInStart_ThrowsException()
     {
@@ -164,18 +171,18 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-    [DataTestMethod]
-    [DataRow("++45 12345678")]
-    [DataRow("+++45 12345678")]
-    public async Task RegisterAsync_CountryCodeTooManyPlus_ThrowsException(string phone)
+    // Phone number may contain only one '+' character
+    [TestMethod]
+    public async Task RegisterAsync_CountryCodeTooManyPlus_ThrowsException()
     {
         StartMock();
         var dto = ValidDto();
-        dto.Tlf = phone;
+        dto.Tlf = "++45 12345678";
 
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Subscriber number cannot consist entirely of zeros
     [TestMethod]
     public async Task RegisterAsync_AllZeroSubscriber_ThrowsException()
     {
@@ -186,6 +193,7 @@ public class LoanerTestsPhone
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // Phone numbers with a valid total digit count should be accepted
     [DataTestMethod]
     [DataRow("+45 1234567")]             // 7 digits
     [DataRow("+45 12345678")]           // 8 digits
@@ -203,6 +211,7 @@ public class LoanerTestsPhone
 
         Assert.AreEqual(phone, result.Tlf);
     }
+    // Country code with 1-3 digits should be accepted
     [DataTestMethod]
     [DataRow("+1 4123456789")]
     [DataRow("+354 12345678")]

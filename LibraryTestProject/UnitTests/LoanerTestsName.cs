@@ -60,7 +60,7 @@ public class LoanerTestsName
             .ReturnsAsync((Loaner l) => l);
     }
 
-
+    // First name cannot be empty
     [TestMethod]
     public async Task RegisterAsync_EmptyFirstName_ThrowsException()
     {
@@ -71,7 +71,7 @@ public class LoanerTestsName
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // First name cannot be null
     [TestMethod]
     public async Task RegisterAsync_NullFirstName_ThrowsException()
     {
@@ -82,7 +82,7 @@ public class LoanerTestsName
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // First name must contain at least 2 characters
     [TestMethod]
     public async Task RegisterAsync_FirstNameTooShort_ThrowsException()
     {
@@ -93,6 +93,7 @@ public class LoanerTestsName
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    // First name can't contain numbers
     [TestMethod]
     public async Task RegisterAsync_NumberInFirstName_ThrowsException()
     {
@@ -103,10 +104,10 @@ public class LoanerTestsName
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // First name exceeding the maximum allowed length should throw
     [DataTestMethod]
-    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoK")]
-    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKi")]
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoK")] //101 characters
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKi")] //102 characters
     public async Task RegisterAsync_FirstNameTooLong_ThrowsException(string name)
     {
         StartMock();
@@ -116,7 +117,7 @@ public class LoanerTestsName
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // First name containing unsupported character sets should throw
     [DataTestMethod]
     [DataRow("Алексей")]
     [DataRow("李明")]
@@ -130,7 +131,7 @@ public class LoanerTestsName
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
-
+    // First name lengths within the allowed range should be accepted
     [DataTestMethod]
     [DataRow("Bo")]
     [DataRow("Bob")]
@@ -148,7 +149,7 @@ public class LoanerTestsName
 
         Assert.AreEqual(name, result.FirstName);
     }
-
+    // First name should be accepted regardless of letter capitalization
     [DataTestMethod]
     [DataRow("kristoffer")]
     [DataRow("KRISTOFFER")]
@@ -165,7 +166,7 @@ public class LoanerTestsName
 
         Assert.AreEqual(name, result.FirstName);
     }
-
+    // Valid special characters such as spaces, hyphens and apostrophes are allowed
     [DataTestMethod]
     [DataRow("José")]
     [DataRow("Anne Marie")]
