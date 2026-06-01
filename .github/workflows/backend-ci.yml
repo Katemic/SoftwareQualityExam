@@ -32,7 +32,10 @@ jobs:
     env:
       SOLUTION: LibraryDatabase.sln
       TEST_PROJECT: LibraryTestProject/LibraryTestProject.csproj
-      TEST_CONNECTION: server=127.0.0.1;port=3307;database=mydb_test;user=root;password=1234
+      TEST_CONNECTION: ${{ secrets.TEST_CONNECTION }}
+      JWT_KEY: ${{ secrets.JWT_KEY }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
       ASPNETCORE_ENVIRONMENT: Testing
       DOTNET_ENVIRONMENT: Testing
       GITHUB_REF_NAME: ${{ github.ref_name }}
@@ -62,9 +65,9 @@ jobs:
           dotnet user-secrets set "ConnectionStrings:TestConnection" "$TEST_CONNECTION" --project LibraryTestProject/LibraryTestProject.csproj
           dotnet user-secrets set "ConnectionStrings:TestConnection" "$TEST_CONNECTION" --project LibraryAPI/LibraryAPI.csproj
           dotnet user-secrets set "ConnectionStrings:DefaultConnection" "$TEST_CONNECTION" --project LibraryAPI/LibraryAPI.csproj
-          dotnet user-secrets set "Jwt:Key" "ThisIsATestJwtKeyForGithubActionsOnly123456789" --project LibraryAPI/LibraryAPI.csproj
-          dotnet user-secrets set "Jwt:Issuer" "LibraryAPI.Tests" --project LibraryAPI/LibraryAPI.csproj
-          dotnet user-secrets set "Jwt:Audience" "LibraryAPI.Tests" --project LibraryAPI/LibraryAPI.csproj
+          dotnet user-secrets set "Jwt:Key" "$JWT_KEY" --project LibraryAPI/LibraryAPI.csproj
+          dotnet user-secrets set "Jwt:Issuer" "$JWT_ISSUER" --project LibraryAPI/LibraryAPI.csproj
+          dotnet user-secrets set "Jwt:Audience" "$JWT_AUDIENCE" --project LibraryAPI/LibraryAPI.csproj
 
       - name: Wait for MySQL
         run: |
@@ -81,9 +84,13 @@ jobs:
 
       - name: Create test database schema and seed data
         run: |
-          docker run --rm --network host             -v "$PWD/LibraryTestUtilities/TestData:/sql:ro"             mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test_schema.sql'
+          docker run --rm --network host \
+            -v "$PWD/LibraryTestUtilities/TestData:/sql:ro" \
+            mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test_schema.sql'
 
-          docker run --rm --network host             -v "$PWD/LibraryTestUtilities/TestData:/sql:ro"             mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test-seed.sql'
+          docker run --rm --network host \
+            -v "$PWD/LibraryTestUtilities/TestData:/sql:ro" \
+            mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test-seed.sql'
 
       - name: Begin SonarCloud scan
         env:
@@ -91,7 +98,13 @@ jobs:
           SONAR_ORG_KEY: ${{ secrets.SONAR_ORG_KEY }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
         run: |
-          dotnet-sonarscanner begin             /k:"$SONAR_PROJECT_KEY"             /o:"$SONAR_ORG_KEY"             /d:sonar.token="$SONAR_TOKEN"             /d:sonar.host.url="https://sonarcloud.io"             /d:sonar.branch.name="$GITHUB_REF_NAME"             /d:sonar.cs.vscoveragexml.reportsPaths="TestResults/coverage/*.xml"
+          dotnet-sonarscanner begin \
+            /k:"$SONAR_PROJECT_KEY" \
+            /o:"$SONAR_ORG_KEY" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.branch.name="$GITHUB_REF_NAME" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="TestResults/coverage/*.xml"
 
       - name: Build backend
         run: dotnet build "$SOLUTION" --configuration Release --no-restore
@@ -102,18 +115,28 @@ jobs:
       - name: Run unit tests
         run: |
           mkdir -p TestResults/unit TestResults/coverage
-          dotnet-coverage collect             "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/unit --logger trx --filter FullyQualifiedName!~Integration"             -f xml             -o TestResults/coverage/unit.xml
+          dotnet-coverage collect \
+            "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/unit --logger trx --filter FullyQualifiedName!~Integration" \
+            -f xml \
+            -o TestResults/coverage/unit.xml
 
       - name: Reset database before integration tests
         run: |
-          docker run --rm --network host             -v "$PWD/LibraryTestUtilities/TestData:/sql:ro"             mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test_schema.sql'
+          docker run --rm --network host \
+            -v "$PWD/LibraryTestUtilities/TestData:/sql:ro" \
+            mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test_schema.sql'
 
-          docker run --rm --network host             -v "$PWD/LibraryTestUtilities/TestData:/sql:ro"             mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test-seed.sql'
+          docker run --rm --network host \
+            -v "$PWD/LibraryTestUtilities/TestData:/sql:ro" \
+            mysql:8.0 sh -c 'mysql -h127.0.0.1 -P3307 -uroot -p1234 mydb_test < /sql/test-seed.sql'
 
       - name: Run integration tests in code
         run: |
           mkdir -p TestResults/integration TestResults/coverage
-          dotnet-coverage collect             "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/integration --logger trx --filter FullyQualifiedName~Integration"             -f xml             -o TestResults/coverage/integration.xml
+          dotnet-coverage collect \
+            "dotnet test $TEST_PROJECT --configuration Release --no-build --results-directory TestResults/integration --logger trx --filter FullyQualifiedName~Integration" \
+            -f xml \
+            -o TestResults/coverage/integration.xml
 
       - name: End SonarCloud scan
         if: always()
