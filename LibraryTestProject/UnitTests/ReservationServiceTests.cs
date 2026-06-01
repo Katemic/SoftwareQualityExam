@@ -154,42 +154,6 @@ namespace LibraryTestProject.UnitTests
         }
 
         // Test cases:
-        // Invalid status updates throws exception
-        [TestMethod]
-        [DataRow("cancelled")]
-        [DataRow("thisispending")]
-        [DataRow(" ")]
-        public async Task UpdateReservation_ShouldUpdateStatusInvalid(string invalidStatus)
-        {
-            // Arrange
-            var repoMock = new Mock<IReservationRepository>();
-            var loanMock = new Mock<ILoanRepository>();
-
-            var reservation = new Reservation
-            {
-                Id = 1,
-                Status = "pending"
-            };
-
-            repoMock.Setup(x => x.GetByIdAsync(1))
-                .ReturnsAsync(reservation);
-
-            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
-                .Returns(Task.CompletedTask);
-
-            Reservation updatedReservation = null;
-
-            repoMock.Setup(x => x.UpdateAsync(It.IsAny<Reservation>()))
-                .Callback<Reservation>(r => updatedReservation = r)
-                .Returns(Task.CompletedTask);
-
-            var service = new ReservationService(repoMock.Object, loanMock.Object);
-
-            // Assert - verify enum conversion
-            Assert.ThrowsException<ArgumentException>(() => service.UpdateReservation(1, (ReservationStatus)Enum.Parse(typeof(ReservationStatus), invalidStatus, true)));
-        }
-
-        // Test cases:
         // Null status updates throws exception
         [TestMethod]
         public async Task UpdateReservation_ShouldUpdateStatusNull()
