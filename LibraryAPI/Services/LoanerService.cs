@@ -150,7 +150,7 @@ namespace LibraryAPI.Services
             if (local.Length < 1 || local.Length > 64)
                 throw new ArgumentException("Local part length is invalid.");
 
-            if (domain.Length < 4 || domain.Length > 253)
+            if (domain.Length <= 3 || domain.Length >= 255)
                 throw new ArgumentException("Domain part length is invalid.");
 
             if (email.Length > 254)

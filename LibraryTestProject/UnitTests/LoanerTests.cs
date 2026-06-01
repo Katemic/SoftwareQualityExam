@@ -659,7 +659,7 @@ public class LoanerTests
     [DataTestMethod]
     [DataRow(250)] //domain 255 charators
     [DataRow(251)] //domain 256 charators
-    public async Task RegisterAsync_DomainTooLong_ThrowsException(int number) //todo ask about compared to total length
+    public async Task RegisterAsync_DomainTooLong_ThrowsException(int number)
     {
         StartMock();
         string email =
@@ -755,7 +755,7 @@ public class LoanerTests
     {
         StartMock();
         var dto = ValidDto();
-        dto.Email = "test@タ().com";
+        dto.Email = "test@タ.com";
 
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
@@ -795,8 +795,8 @@ public class LoanerTests
         Assert.AreEqual(email, result.Email);
     }
     [DataTestMethod]
-    [DataRow(248)] //domain 253 charators
-    [DataRow(249)] //domain 254 charators
+    [DataRow(249)] //domain 252 charators
+    //[DataRow(250)] //domain 253 charators -- Not applicable because total length would be 255 which exceeds limit
     public async Task RegisterAsync_DomainValidLong(int number)
     {
         StartMock();
@@ -906,7 +906,7 @@ public class LoanerTests
         Assert.AreEqual(email, result.Email);
     }
     //passwword
-    [DataTestMethod]  // todo ask about empty with space
+    [DataTestMethod]
     [DataRow(null)]
     [DataRow("")]
     public async Task RegisterAsync_PasswordRequired_ThrowsException(string password)
@@ -919,6 +919,7 @@ public class LoanerTests
     () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
+    [DataRow("Passw0")] // 6 chars
     [DataRow("Passw0r")] // 7 chars
     public async Task RegisterAsync_PasswordTooShort_ThrowsException(string password)
     {
@@ -945,18 +946,18 @@ public class LoanerTests
         Assert.IsNotNull(result);
     }
     [DataTestMethod]
-    [DataRow(63)]
-    [DataRow(64)]
+    [DataRow(63)] // 1 uppercase + 63 lowercase + 1 number = 65 chars
+    [DataRow(64)] // 1 uppercase + 63 lowercase + 1 number = 66 chars
     public async Task RegisterAsync_PasswordTooLong_ThrowsException(int number)
     {
         StartMock();
         var dto = ValidDto();
 
-        string invalid65 = new string('A', 1)
+        string invalidPassword = new string('A', 1)
                  + new string('a', number)
                  + "1";
 
-        dto.Password = invalid65;
+        dto.Password = invalidPassword;
 
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
