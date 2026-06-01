@@ -158,14 +158,6 @@ namespace LibraryAPI.Services
 
             if (!Regex.IsMatch(domain, @"^[A-Za-z0-9.-]+$"))
                 throw new ArgumentException("Domain contains invalid characters.");
-
-            var labels = domain.Split('.');
-
-            foreach (var label in labels)
-            {
-                if (string.IsNullOrWhiteSpace(label))
-                    throw new ArgumentException("Invalid label.");
-            }
         }
         private void ValidatePassword(string? password)
         {

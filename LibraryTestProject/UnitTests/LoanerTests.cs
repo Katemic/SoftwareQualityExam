@@ -20,19 +20,6 @@ public class LoanerTests
     private Mock<IPasswordHasher<Loaner>> _passwordHasherMock = null!;
     private LoanerService _service = null!;
 
-    [TestInitialize]
-    public void Setup()
-    {
-        _repoMock = new Mock<ILoanerRepository>();
-        _configMock = new Mock<IConfiguration>();
-        _passwordHasherMock = new Mock<IPasswordHasher<Loaner>>();
-
-        _service = new LoanerService(
-            _repoMock.Object,
-            _passwordHasherMock.Object,
-            _configMock.Object);
-    }
-
     private RegisterLoanerDto ValidDto()
     {
         return new RegisterLoanerDto
@@ -44,6 +31,17 @@ public class LoanerTests
             Email = "john@example.com",
             Password = "Password1"
         };
+    }
+    private void StartMock()
+    {
+        _repoMock = new Mock<ILoanerRepository>();
+        _configMock = new Mock<IConfiguration>();
+        _passwordHasherMock = new Mock<IPasswordHasher<Loaner>>();
+
+        _service = new LoanerService(
+            _repoMock.Object,
+            _passwordHasherMock.Object,
+            _configMock.Object);
     }
     private void SetupValidRegistration()
     {
@@ -65,6 +63,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_EmptyFirstName_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.FirstName = "";
 
@@ -75,6 +74,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_NullFirstName_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.FirstName = null;
 
@@ -85,6 +85,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_FirstNameTooShort_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.FirstName = "B";
 
@@ -97,6 +98,7 @@ public class LoanerTests
     [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKi")]
     public async Task RegisterAsync_FirstNameTooLong_ThrowsException(string name)
     {
+        StartMock();
         var dto = ValidDto();
         dto.FirstName = name;
 
@@ -110,6 +112,7 @@ public class LoanerTests
     [DataRow("محمد")]
     public async Task RegisterAsync_FirstNameContainsInvalidCharacters_ThrowsException(string name)
     {
+        StartMock();
         var dto = ValidDto();
         dto.FirstName = name;
 
@@ -124,6 +127,7 @@ public class LoanerTests
     [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikko")]
     public async Task RegisterAsync_FirstNameLength_Valid(string name)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -140,6 +144,7 @@ public class LoanerTests
     [DataRow("KrisTOfFeR")]
     public async Task RegisterAsync_FirstNameCapitalization_Valid(string name)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -157,6 +162,7 @@ public class LoanerTests
     [DataRow("O'Connor")]
     public async Task RegisterAsync_FirstNameSpecialCharacters_Valid(string name)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -170,6 +176,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_EmptyLastName_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.LastName = "";
 
@@ -180,6 +187,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_NullLastName_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.LastName = null;
 
@@ -190,6 +198,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_LastNameTooShort_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.LastName = "B";
 
@@ -202,6 +211,7 @@ public class LoanerTests
     [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKi")]
     public async Task RegisterAsync_LastNameTooLong_ThrowsException(string name)
     {
+        StartMock();
         var dto = ValidDto();
         dto.LastName = name;
 
@@ -215,6 +225,7 @@ public class LoanerTests
     [DataRow("محمد")]
     public async Task RegisterAsync_LastNameContainsInvalidCharacters_ThrowsException(string name)
     {
+        StartMock();
         var dto = ValidDto();
         dto.LastName = name;
 
@@ -229,6 +240,7 @@ public class LoanerTests
     [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikko")]
     public async Task RegisterAsync_LastNameLength_Valid(string name)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -245,6 +257,7 @@ public class LoanerTests
     [DataRow("KrisTOfFeR")]
     public async Task RegisterAsync_LastNameCapitalization_Valid(string name)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -262,6 +275,7 @@ public class LoanerTests
     [DataRow("O'Connor")]
     public async Task RegisterAsync_LastNameSpecialCharacters_Valid(string name)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -275,6 +289,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CprIsNull_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Cpr = null;
 
@@ -285,6 +300,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CprIsEmpty_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Cpr = "";
 
@@ -295,6 +311,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CprContainsLetters_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Cpr = "InvalidCPR";
 
@@ -305,6 +322,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CprInvalidDate_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Cpr = "4013991234";
 
@@ -314,6 +332,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CprValid_ReturnsLoaner()
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -331,6 +350,7 @@ public class LoanerTests
     [DataRow("010120112345")] // 12 digits
     public async Task RegisterAsync_CprLength9_ThrowsException(string cpr)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Cpr = cpr;
 
@@ -341,6 +361,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CprLength10_IsValid()
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -357,6 +378,7 @@ public class LoanerTests
     [DataRow(null)]
     public async Task RegisterAsync_PhoneRequired_ThrowsException(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -369,6 +391,7 @@ public class LoanerTests
     [DataRow("+45  12345678")]
     public async Task RegisterAsync_InvalidPhoneWhitespace_Throws(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -382,6 +405,7 @@ public class LoanerTests
     [DataRow("+45 123456789012345")]    // 17 digits
     public async Task RegisterAsync_InvalidTotalDigitLength_ThrowsException(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -392,6 +416,7 @@ public class LoanerTests
     [DataRow("+ 12345678")]
     public async Task RegisterAsync_CountryCodeTooShort_Throws(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -402,6 +427,7 @@ public class LoanerTests
     [DataRow("+34A 12345678")]
     public async Task RegisterAsync_CountryCodeHasChar_Throws(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -412,6 +438,7 @@ public class LoanerTests
     [DataRow("+3 12V45678")]
     public async Task RegisterAsync_NumberHasChar_Throws(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -423,6 +450,7 @@ public class LoanerTests
     [DataRow("+12345 12345678")]
     public async Task RegisterAsync_CountryCodeTooLong_Throws(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -432,8 +460,19 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CountryCodeNoPlus_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = "45 12345678";
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [TestMethod]
+    public async Task RegisterAsync_PlusNotInStart_ThrowsException()
+    {
+        StartMock();
+        var dto = ValidDto();
+        dto.Tlf = "45 +12345678";
 
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
@@ -443,6 +482,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_CountryCodeTooManyPlus_ThrowsException(string phone)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = phone;
 
@@ -452,6 +492,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_AllZeroSubscriber_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Tlf = "+45 00000000";
 
@@ -465,6 +506,7 @@ public class LoanerTests
     [DataRow("+45 1234567890123")]     // 15 digits
     public async Task RegisterAsync_TotalDigitCount_Valid(string phone)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -480,6 +522,7 @@ public class LoanerTests
     [DataRow("+354 12345678")]
     public async Task RegisterAsync_ValidPhone_ReturnsLoaner(string phone)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -496,6 +539,7 @@ public class LoanerTests
     [DataRow(" ")]
     public async Task RegisterAsync_EmailRequired_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -507,6 +551,7 @@ public class LoanerTests
     [DataRow("a@b.d")] //5 charators
     public async Task RegisterAsync_EmailTooShort_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -519,6 +564,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_EmailTooLong_ThrowsException(int number)
     {
+        StartMock();
         string email =
             new string('a', number) +
             "@" +
@@ -533,6 +579,7 @@ public class LoanerTests
     [TestMethod] //loacal empty/too short
     public async Task RegisterAsync_LocalEmpty_ThrowsException()
     {
+        StartMock();
         string email = "@test.dk";
 
         var dto = ValidDto();
@@ -546,6 +593,7 @@ public class LoanerTests
     [DataRow(66)] //local 66 charators
     public async Task RegisterAsync_LocalTooLong_ThrowsException(int number)
     {
+        StartMock();
         string email =
             new string('a', number) +
             "@test.dk";
@@ -561,6 +609,7 @@ public class LoanerTests
     [DataRow("test@t.d")]
     public async Task RegisterAsync_DomainTooShort_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -570,6 +619,7 @@ public class LoanerTests
     [TestMethod] // domain empty
     public async Task RegisterAsync_DomainEmpty_ThrowsException()
     {
+        StartMock();
         string email =
         "test@.dk";
 
@@ -585,6 +635,7 @@ public class LoanerTests
     [DataRow(251)] //domain 256 charators
     public async Task RegisterAsync_DomainTooLong_ThrowsException(int number)
     {
+        StartMock();
         string email =
         "test@" + new string('a', number) + ".dk";
 
@@ -601,6 +652,7 @@ public class LoanerTests
     [DataRow("test@@@example.com")]
     public async Task RegisterAsync_InvalidAtCount_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -611,6 +663,7 @@ public class LoanerTests
     [DataRow("testin8@")]
     public async Task RegisterAsync_MissingDomainPart_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -620,6 +673,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_EmailContainsSpaces_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = "Test @example.com";
 
@@ -633,6 +687,7 @@ public class LoanerTests
     [DataRow("Test@example...com")]
     public async Task RegisterAsync_EmailContainsConsecutiveDots_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -644,6 +699,7 @@ public class LoanerTests
     [DataRow("Test.@example.com")]
     public async Task RegisterAsync_InvalidLocalDotPlacement_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -655,6 +711,7 @@ public class LoanerTests
     [DataRow("Test@example.com.")]
     public async Task RegisterAsync_InvalidDomainDotPlacement_ThrowsException(string email)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = email;
 
@@ -664,6 +721,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_DomainMissingDot_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = "test@com";
 
@@ -673,6 +731,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_InvalidLocalCharacters_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = "漢@example.com";
 
@@ -682,6 +741,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_InvalidDomainCharacters_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Email = "test@タ().com";
 
@@ -693,6 +753,7 @@ public class LoanerTests
     [DataRow("a@b.com")] //5 charators
     public async Task RegisterAsync_EmailValidShortValid(string email)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -707,6 +768,7 @@ public class LoanerTests
     [DataRow(64)] //local 64 charators
     public async Task RegisterAsync_LocalValidLong(int number)
     {
+        StartMock();
         SetupValidRegistration();
 
         string email =
@@ -725,6 +787,7 @@ public class LoanerTests
     [DataRow("test@te.dk")] // 5 charators
     public async Task RegisterAsync_DomainValidShort(string email)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -739,6 +802,7 @@ public class LoanerTests
     [DataRow(249)] //domain 254 charators
     public async Task RegisterAsync_DomainValidLong(int number)
     {
+        StartMock();
         SetupValidRegistration();
 
         string email =
@@ -753,7 +817,8 @@ public class LoanerTests
     }
     [TestMethod]
     public async Task RegisterAsync_LocalValidDot()
-    { 
+    {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -766,6 +831,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_DomainCanHaveSubdomain()
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -778,6 +844,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_LocalWithNumbers()
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -790,6 +857,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_DomainWithNumbers()
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -802,6 +870,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_EmailNeedsAt()
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -829,6 +898,7 @@ public class LoanerTests
     [DataRow("Te_st@example.com")]
     public async Task RegisterAsync_ValidEmailCharaters(string email)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -845,6 +915,7 @@ public class LoanerTests
     [DataRow(" ")]
     public async Task RegisterAsync_PasswordRequired_ThrowsException(string password)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = password;
 
@@ -856,6 +927,7 @@ public class LoanerTests
     [DataRow("Passw0")] // 7 chars
     public async Task RegisterAsync_PasswordTooShort_ThrowsException(string password)
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = password;
 
@@ -867,6 +939,7 @@ public class LoanerTests
     [DataRow("Password1")]
     public async Task RegisterAsync_ValidPasswordLengths(string password)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
@@ -881,6 +954,7 @@ public class LoanerTests
     [DataRow(64)]
     public async Task RegisterAsync_PasswordLength65_ThrowsException(int number)
     {
+        StartMock();
         var dto = ValidDto();
 
         string invalid65 = new string('A', 1)
@@ -895,6 +969,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_PasswordContainsSpaces_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = "My Password123";
 
@@ -904,6 +979,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_PasswordOnlyLetters_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = "Thisismypassword";
 
@@ -913,6 +989,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_PasswordOnlyNumbers_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = "1234567890";
 
@@ -922,6 +999,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_PasswordNoUppercase_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = "mypassword123";
 
@@ -931,6 +1009,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_PasswordNoLowercase_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = "MYPASSWORD123";
 
@@ -940,6 +1019,7 @@ public class LoanerTests
     [TestMethod]
     public async Task RegisterAsync_PasswordNoNumber_ThrowsException()
     {
+        StartMock();
         var dto = ValidDto();
         dto.Password = "MyPassword";
 
@@ -952,6 +1032,7 @@ public class LoanerTests
     [DataRow("Secure123Password")]
     public async Task RegisterAsync_ValidPassword_ReturnsLoaner(string password)
     {
+        StartMock();
         SetupValidRegistration();
 
         var dto = ValidDto();
