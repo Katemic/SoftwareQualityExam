@@ -45,9 +45,19 @@ namespace LibrarySQLBackend.Repositories
 
         public async Task<Fine> AddAsync(Fine fine)
         {
-            _context.Fines.Add(fine);
-            await _context.SaveChangesAsync();
-            return fine;
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                INSERT INTO fine
+                    (amount, status, created_date, paid_date, loan_id)
+                VALUES
+                    ({fine.Amount}, {fine.Status}, CURRENT_TIMESTAMP(), NULL, {fine.LoanId});
+            ");
+
+            return await _context.Fines
+                .Include(f => f.Loan)
+                .OrderByDescending(f => f.Id)
+                .FirstAsync(f =>
+                    f.LoanId == fine.LoanId &&
+                    f.Status == fine.Status);
         }
 
         public async Task<bool> UpdateAsync(Fine fine)
@@ -57,8 +67,13 @@ namespace LibrarySQLBackend.Repositories
             if (existingFine == null)
                 return false;
 
-            _context.Entry(existingFine).CurrentValues.SetValues(fine);
-            await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE fine
+                SET
+                    status = {fine.Status},
+                    paid_date = CURRENT_TIMESTAMP()
+                WHERE id = {fine.Id};
+            ");
 
             return true;
         }

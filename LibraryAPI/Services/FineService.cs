@@ -79,8 +79,7 @@ namespace LibraryAPI.Services
             {
                 LoanId = dto.LoanId,
                 Amount = dto.Amount,
-                Status = "unpaid",
-                CreatedDate = DateTime.Now,
+                Status = "unpaid"
             };
 
             var createdFine =
@@ -105,14 +104,7 @@ namespace LibraryAPI.Services
                     "Fine is already paid.");
             }
 
-            if (fine.Status != "unpaid")
-            {
-                throw new InvalidOperationException(
-                    "Only unpaid fines can be paid.");
-            }
-
             fine.Status = "paid";
-            fine.PaidDate = DateTime.Now;
 
             await _fineRepository.UpdateAsync(fine);
         }
