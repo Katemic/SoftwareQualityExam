@@ -647,7 +647,7 @@ public class LoanerTests
     {
         StartMock();
         string email =
-        "test@";
+        "testing@";
 
 
         var dto = ValidDto();
