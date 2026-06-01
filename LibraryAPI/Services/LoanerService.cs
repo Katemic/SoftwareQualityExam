@@ -39,47 +39,51 @@ namespace LibraryAPI.Services
             return loaner == null ? null : MapToDto(loaner);
         }
 
-        public async Task<LoanerDto> RegisterAsync(RegisterLoanerDto dto)
+        private void ValidateName(string? firstName, string? lastName)
         {
-            if (string.IsNullOrWhiteSpace(dto.FirstName))
+            if (string.IsNullOrWhiteSpace(firstName))
                 throw new ArgumentException("First name is required.");
 
-            if (dto.FirstName.Length < 2 || dto.FirstName.Length > 100)
+            if (firstName.Length < 2 || firstName.Length > 100)
                 throw new ArgumentException("First name must be between 2 and 100 characters.");
 
-            if (!Regex.IsMatch(dto.FirstName, @"^[A-Za-zÀ-ÿ' -]+$"))
+            if (!Regex.IsMatch(firstName, @"^[A-Za-zÀ-ÿ' -]+$"))
                 throw new ArgumentException("First name contains invalid characters.");
 
-            if (string.IsNullOrWhiteSpace(dto.LastName))
+            if (string.IsNullOrWhiteSpace(lastName))
                 throw new ArgumentException("Last name is required.");
 
-            if (dto.LastName.Length < 2 || dto.LastName.Length > 100)
+            if (lastName.Length < 2 || lastName.Length > 100)
                 throw new ArgumentException("Last name must be between 2 and 100 characters.");
 
-            if (!Regex.IsMatch(dto.LastName, @"^[A-Za-zÀ-ÿ' -]+$"))
+            if (!Regex.IsMatch(lastName, @"^[A-Za-zÀ-ÿ' -]+$"))
                 throw new ArgumentException("Last name contains invalid characters.");
-
-            if (string.IsNullOrWhiteSpace(dto.Cpr))
+        }
+        private void ValidateCPR(string? cpr)
+        {
+            if (string.IsNullOrWhiteSpace(cpr))
                 throw new ArgumentException("CPR is required.");
 
-            if (!Regex.IsMatch(dto.Cpr, @"^\d{10}$"))
+            if (!Regex.IsMatch(cpr, @"^\d{10}$"))
                 throw new ArgumentException("CPR must contain exactly 10 digits.");
 
-            var datePart = dto.Cpr.Substring(0, 6);
+            var datePart = cpr.Substring(0, 6);
 
             if (!DateTime.TryParseExact(datePart, "ddMMyy", null, System.Globalization.DateTimeStyles.None, out _))
                 throw new ArgumentException("CPR contains invalid date.");
-
-            if (string.IsNullOrWhiteSpace(dto.Tlf))
+        }
+        private void ValidatePhone(string? tlf)
+        {
+            if (string.IsNullOrWhiteSpace(tlf))
                 throw new ArgumentException("Phone number is required.");
 
-            if (dto.Tlf.Count(c => c == '+') != 1)
+            if (tlf.Count(c => c == '+') != 1)
                 throw new ArgumentException("Phone number must contain exactly one '+' sign.");
 
-            if (!dto.Tlf.StartsWith('+'))
+            if (!tlf.StartsWith('+'))
                 throw new ArgumentException("Phone number must start with '+'.");
 
-            var split = dto.Tlf.Split(' ');
+            var split = tlf.Split(' ');
 
             if (split.Length != 2)
                 throw new ArgumentException("Phone number must contain exactly one whitespace.");
@@ -105,17 +109,19 @@ namespace LibraryAPI.Services
 
             if (subscriber.All(c => c == '0'))
                 throw new ArgumentException("Subscriber number cannot contain only zeros.");
-
-            if (string.IsNullOrWhiteSpace(dto.Email))
+        }
+        private void ValidateEmail(string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email is required.");
 
-            if (dto.Email.Length < 6 || dto.Email.Length > 254)
+            if (email.Length < 6 || email.Length > 254)
                 throw new ArgumentException("Email length is invalid.");
 
-            if (dto.Email.Count(c => c == '@') != 1)
+            if (email.Count(c => c == '@') != 1)
                 throw new ArgumentException("Email must contain exactly one '@'.");
 
-            var parts = dto.Email.Split('@');
+            var parts = email.Split('@');
 
             string local = parts[0];
             string domain = parts[1];
@@ -126,10 +132,10 @@ namespace LibraryAPI.Services
             if (string.IsNullOrWhiteSpace(domain))
                 throw new ArgumentException("Missing domain.");
 
-            if (dto.Email.Contains(" "))
+            if (email.Contains(" "))
                 throw new ArgumentException("Email cannot contain spaces.");
 
-            if (dto.Email.Contains(".."))
+            if (email.Contains(".."))
                 throw new ArgumentException("Email cannot contain consecutive dots.");
 
             if (local.StartsWith(".") || local.EndsWith("."))
@@ -158,27 +164,35 @@ namespace LibraryAPI.Services
             foreach (var label in labels)
             {
                 if (string.IsNullOrWhiteSpace(label))
-                    throw new ArgumentException("Invalid domain label.");
-
-                if (label.StartsWith("-") || label.EndsWith("-"))
-                    throw new ArgumentException("Domain labels cannot start or end with '-'.");
+                    throw new ArgumentException("Invalid label.");
             }
-
-            if (string.IsNullOrWhiteSpace(dto.Password))
+        }
+        private void ValidatePassword(string? password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
                 throw new ArgumentException("Password is required.");
 
-            if (dto.Password.Length < 8 || dto.Password.Length > 64)
+            if (password.Length < 8 || password.Length > 64)
                 throw new ArgumentException("Password must be between 8 and 64 characters.");
 
-            if (dto.Password.Contains(" "))
+            if (password.Contains(" "))
                 throw new ArgumentException("Password cannot contain spaces.");
 
-            if (!dto.Password.Any(char.IsUpper) || !dto.Password.Any(char.IsLower) || !dto.Password.Any(char.IsDigit))
+            if (!password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit))
                 throw new ArgumentException("Password must contain uppercase, lowercase, and number.");
+        }
+
+        public async Task<LoanerDto> RegisterAsync(RegisterLoanerDto dto)
+        {
+            ValidateName(dto.FirstName, dto.LastName);
+            ValidateCPR(dto.Cpr);
+            ValidatePhone(dto.Tlf);
+            ValidateEmail(dto.Email);
+            ValidatePassword(dto.Password);
 
             var existing = await _loanerRepository.GetByEmailAsync(dto.Email!);
             if (existing != null)
-                throw new ArgumentException("A user with this email already exists.");
+                throw new DuplicateEmailException("A user with this email already exists.");
 
             var loaner = new Loaner
             {
@@ -195,7 +209,7 @@ namespace LibraryAPI.Services
             return MapToDto(created);
         }
 
-        public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+        public async Task<AuthResponseDto> LoginAsync(LoginDto dto) //tjek om email og password er null eller whitespace og returner fejl i så fald
         {
             var loaner = await _loanerRepository.GetByEmailAsync(dto.Email!);
 
@@ -233,7 +247,27 @@ namespace LibraryAPI.Services
                 User = MapToDto(loaner)
             };
         }
+        public async Task<LoanerDto?> UpdateAsync(int id, UpdateLoanerDto dto)
+        {
+            var loaner = await _loanerRepository.GetByIdAsync(id);
 
+            if (loaner == null)
+                return null;
+
+            loaner.FirstName = dto.FirstName;
+            loaner.LastName = dto.LastName;
+            loaner.Tlf = dto.Tlf;
+            loaner.Email = dto.Email;
+            
+
+            await _loanerRepository.UpdateAsync(loaner);
+
+            return MapToDto(loaner);
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            return await _loanerRepository.DeleteAsync(id);
+        }
         private string GenerateJwtToken(Loaner loaner, out DateTime expiresAtUtc)
         {
             var jwtKey = _configuration["Jwt:Key"]
@@ -279,6 +313,26 @@ namespace LibraryAPI.Services
                 Tlf = loaner.Tlf,
                 Email = loaner.Email
             };
+        }
+        public async Task ChangePasswordAsync(int loanerId, ChangePasswordDto dto)
+        {
+            var loaner = await _loanerRepository.GetByIdAsync(loanerId);
+
+            var result = _passwordHasher.VerifyHashedPassword(loaner, loaner.Password!, dto.CurrentPassword);
+
+            if (result == PasswordVerificationResult.Failed)
+                throw new UnauthorizedAccessException();
+
+            loaner.Password = _passwordHasher.HashPassword(loaner, dto.NewPassword);
+
+            await _loanerRepository.UpdateAsync(loaner);
+        }
+        public class DuplicateEmailException : Exception
+        {
+            public DuplicateEmailException(string message)
+                : base(message)
+            {
+            }
         }
     }
 }

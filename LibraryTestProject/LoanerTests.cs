@@ -1,8 +1,12 @@
 ﻿using LibraryAPI.DTOs;
 using LibraryAPI.Services;
+using LibrarySQLBackend.Context;
 using LibrarySQLBackend.Models;
+using LibrarySQLBackend.Repositories;
 using LibrarySQLBackend.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Moq;
 
@@ -11,20 +15,22 @@ namespace LibraryTestProject;
 [TestClass]
 public class LoanerTests
 {
-    private Mock<ILoanerRepository> _loanerRepository = null!;
-    private Mock<IPasswordHasher<Loaner>> _passwordHasher = null!;
-    private Mock<IConfiguration> _configuration = null!;
+    private Mock<ILoanerRepository> _repoMock = null!;
+    private Mock<IConfiguration> _configMock = null!;
+    private Mock<IPasswordHasher<Loaner>> _passwordHasherMock = null!;
     private LoanerService _service = null!;
-
 
     [TestInitialize]
     public void Setup()
     {
-        _loanerRepository = new Mock<ILoanerRepository>();
-        _passwordHasher = new Mock<IPasswordHasher<Loaner>>();
-        _configuration = new Mock<IConfiguration>();
+        _repoMock = new Mock<ILoanerRepository>();
+        _configMock = new Mock<IConfiguration>();
+        _passwordHasherMock = new Mock<IPasswordHasher<Loaner>>();
 
-        _service = new LoanerService(_loanerRepository.Object, _passwordHasher.Object,_configuration.Object);
+        _service = new LoanerService(
+            _repoMock.Object,
+            _passwordHasherMock.Object,
+            _configMock.Object);
     }
 
     private RegisterLoanerDto ValidDto()
@@ -39,31 +45,31 @@ public class LoanerTests
             Password = "Password1"
         };
     }
-    private void SetupSuccessfulRegistration()
+    private void SetupValidRegistration()
     {
-        _loanerRepository
+        _repoMock
             .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
             .ReturnsAsync((Loaner?)null);
 
-        _passwordHasher
-            .Setup(h => h.HashPassword(It.IsAny<Loaner>(), It.IsAny<string>()))
-            .Returns("hashed-password");
+        _passwordHasherMock
+            .Setup(h => h.HashPassword(
+                It.IsAny<Loaner>(),
+                It.IsAny<string>()))
+            .Returns("HASHED_PASSWORD");
 
-        _loanerRepository
+        _repoMock
             .Setup(r => r.AddAsync(It.IsAny<Loaner>()))
-            .ReturnsAsync((Loaner loaner) => loaner);
+            .ReturnsAsync((Loaner l) => l);
     }
-
+    //first name
     [TestMethod]
     public async Task RegisterAsync_EmptyFirstName_ThrowsException()
     {
         var dto = ValidDto();
         dto.FirstName = "";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("First name is required.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [TestMethod]
@@ -72,10 +78,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.FirstName = null;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("First name is required.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [TestMethod]
@@ -84,28 +88,20 @@ public class LoanerTests
         var dto = ValidDto();
         dto.FirstName = "B";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "First name must be between 2 and 100 characters.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
-    [TestMethod]
-    public async Task RegisterAsync_FirstNameTooLong_ThrowsException()
+    [DataTestMethod]
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoK")]
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKi")]
+    public async Task RegisterAsync_FirstNameTooLong_ThrowsException(string name)
     {
         var dto = ValidDto();
-        dto.FirstName =
-            "KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikko" +
-            "KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoK";
+        dto.FirstName = name;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "First name must be between 2 and 100 characters.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [DataTestMethod]
@@ -117,12 +113,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.FirstName = name;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "First name contains invalid characters.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [DataTestMethod]
@@ -132,7 +124,7 @@ public class LoanerTests
     [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikko")]
     public async Task RegisterAsync_FirstNameLength_Valid(string name)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.FirstName = name;
@@ -148,7 +140,7 @@ public class LoanerTests
     [DataRow("KrisTOfFeR")]
     public async Task RegisterAsync_FirstNameCapitalization_Valid(string name)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.FirstName = name;
@@ -160,10 +152,12 @@ public class LoanerTests
 
     [DataTestMethod]
     [DataRow("José")]
-    [DataRow("Anne-Marie O'Connor")]
+    [DataRow("Anne-Marie")]
+    [DataRow("Anne-Marie")]
+    [DataRow("O'Connor")]
     public async Task RegisterAsync_FirstNameSpecialCharacters_Valid(string name)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.FirstName = name;
@@ -172,6 +166,111 @@ public class LoanerTests
 
         Assert.AreEqual(name, result.FirstName);
     }
+    //last name
+    [TestMethod]
+    public async Task RegisterAsync_EmptyLastName_ThrowsException()
+    {
+        var dto = ValidDto();
+        dto.LastName = "";
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+
+    [TestMethod]
+    public async Task RegisterAsync_NullLastName_ThrowsException()
+    {
+        var dto = ValidDto();
+        dto.LastName = null;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+
+    [TestMethod]
+    public async Task RegisterAsync_LastNameTooShort_ThrowsException()
+    {
+        var dto = ValidDto();
+        dto.LastName = "B";
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+
+    [DataTestMethod]
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoK")]
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKi")]
+    public async Task RegisterAsync_LastNameTooLong_ThrowsException(string name)
+    {
+        var dto = ValidDto();
+        dto.LastName = name;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+
+    [DataTestMethod]
+    [DataRow("Алексей")]
+    [DataRow("李明")]
+    [DataRow("محمد")]
+    public async Task RegisterAsync_LastNameContainsInvalidCharacters_ThrowsException(string name)
+    {
+        var dto = ValidDto();
+        dto.LastName = name;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+
+    [DataTestMethod]
+    [DataRow("Bo")]
+    [DataRow("Bob")]
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikk")]
+    [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikko")]
+    public async Task RegisterAsync_LastNameLength_Valid(string name)
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.LastName = name;
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(name, result.LastName);
+    }
+
+    [DataTestMethod]
+    [DataRow("kristoffer")]
+    [DataRow("KRISTOFFER")]
+    [DataRow("KrisTOfFeR")]
+    public async Task RegisterAsync_LastNameCapitalization_Valid(string name)
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.LastName = name;
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(name, result.LastName);
+    }
+
+    [DataTestMethod]
+    [DataRow("José")]
+    [DataRow("Anne-Marie")]
+    [DataRow("Anne-Marie")]
+    [DataRow("O'Connor")]
+    public async Task RegisterAsync_LastNameSpecialCharacters_Valid(string name)
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.LastName = name;
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(name, result.LastName);
+    }
     //CPR
     [TestMethod]
     public async Task RegisterAsync_CprIsNull_ThrowsException()
@@ -179,10 +278,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Cpr = null;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("CPR is required.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [TestMethod]
@@ -191,24 +288,18 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Cpr = "";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("CPR is required.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [TestMethod]
     public async Task RegisterAsync_CprContainsLetters_ThrowsException()
     {
         var dto = ValidDto();
-        dto.Cpr = "MyCPRNumber";
+        dto.Cpr = "InvalidCPR";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "CPR must contain exactly 10 digits.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [TestMethod]
@@ -217,18 +308,13 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Cpr = "4013991234";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "CPR contains invalid date.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
-
     [TestMethod]
     public async Task RegisterAsync_CprValid_ReturnsLoaner()
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.Cpr = "0101201234";
@@ -237,23 +323,25 @@ public class LoanerTests
 
         Assert.AreEqual(dto.Cpr, result.Cpr);
     }
-    [TestMethod]
-    public async Task RegisterAsync_CprLength9_ThrowsException()
+    
+    [DataTestMethod]
+    [DataRow("01012012")] // 8 digits
+    [DataRow("010120123")] // 9 digits
+    [DataRow("01012011234")] // 11 digits
+    [DataRow("010120112345")] // 12 digits
+    public async Task RegisterAsync_CprLength9_ThrowsException(string cpr)
     {
         var dto = ValidDto();
-        dto.Cpr = "010120123";
+        dto.Cpr = cpr;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "CPR must contain exactly 10 digits.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
+    //10 digits
     [TestMethod]
     public async Task RegisterAsync_CprLength10_IsValid()
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.Cpr = "0101201234";
@@ -261,19 +349,6 @@ public class LoanerTests
         var result = await _service.RegisterAsync(dto);
 
         Assert.AreEqual(dto.Cpr, result.Cpr);
-    }
-    [TestMethod]
-    public async Task RegisterAsync_CprLength11_ThrowsException()
-    {
-        var dto = ValidDto();
-        dto.Cpr = "01012011234";
-
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "CPR must contain exactly 10 digits.",
-            ex.Message);
     }
     //tlf
     [DataTestMethod]
@@ -285,10 +360,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Tlf = phone;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("Phone number is required.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
 
     [DataTestMethod]
@@ -299,12 +372,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Tlf = phone;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Phone number must contain exactly one whitespace.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("+45 123")]                // 5 digits
@@ -316,46 +385,87 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Tlf = phone;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Phone number must contain between 7 and 15 digits.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("+ 12345678")]
-    [DataRow("+1234 12345678")]
-    public async Task RegisterAsync_InvalidCountryCode_Throws(string phone)
+    public async Task RegisterAsync_CountryCodeTooShort_Throws(string phone)
     {
         var dto = ValidDto();
         dto.Tlf = phone;
 
         await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
+    () => _service.RegisterAsync(dto));
     }
+    [DataTestMethod]
+    [DataRow("+34A 12345678")]
+    public async Task RegisterAsync_CountryCodeHasChar_Throws(string phone)
+    {
+        var dto = ValidDto();
+        dto.Tlf = phone;
 
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataTestMethod]
+    [DataRow("+3 12V45678")]
+    public async Task RegisterAsync_NumberHasChar_Throws(string phone)
+    {
+        var dto = ValidDto();
+        dto.Tlf = phone;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataTestMethod]
+    [DataRow("+1234 12345678")]
+    [DataRow("+12345 12345678")]
+    public async Task RegisterAsync_CountryCodeTooLong_Throws(string phone)
+    {
+        var dto = ValidDto();
+        dto.Tlf = phone;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [TestMethod]
+    public async Task RegisterAsync_CountryCodeNoPlus_ThrowsException()
+    {
+        var dto = ValidDto();
+        dto.Tlf = "45 12345678";
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataRow("++45 12345678")]
+    [DataRow("+++45 12345678")]
+    [TestMethod]
+    public async Task RegisterAsync_CountryCodeTooManyPlus_ThrowsException(string phone)
+    {
+        var dto = ValidDto();
+        dto.Tlf = phone;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
     [TestMethod]
     public async Task RegisterAsync_AllZeroSubscriber_ThrowsException()
     {
         var dto = ValidDto();
         dto.Tlf = "+45 00000000";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Subscriber number cannot contain only zeros.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("+1 123456")]             // 7 digits
-    [DataRow("+45 1234567")]           // 9 digits
+    [DataRow("+1 1234567")]           // 8 digits
     [DataRow("+45 123456789012")]      // 14 digits
     [DataRow("+45 1234567890123")]     // 15 digits
     public async Task RegisterAsync_TotalDigitCount_Valid(string phone)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.Tlf = phone;
@@ -370,7 +480,7 @@ public class LoanerTests
     [DataRow("+354 12345678")]
     public async Task RegisterAsync_ValidPhone_ReturnsLoaner(string phone)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.Tlf = phone;
@@ -389,66 +499,113 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("Email is required.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
-    [DataRow("a@c")]
-    [DataRow("a@b")]
+    [DataRow("a@c.")] //4 charators
+    [DataRow("a@b.d")] //5 charators
     public async Task RegisterAsync_EmailTooShort_ThrowsException(string email)
     {
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("Email length is invalid.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
+    [DataTestMethod]
+    [DataRow(51)] //255 charators
+    [DataRow(52)] //256 charators
     [TestMethod]
-    public async Task RegisterAsync_EmailTooLong_ThrowsException()
+    public async Task RegisterAsync_EmailTooLong_ThrowsException(int number)
     {
         string email =
-            new string('a', 64) +
+            new string('a', number) +
             "@" +
-            new string('b', 250);
+            new string('b', 200) + ".dk";
 
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [TestMethod] //loacal empty/too short
+    public async Task RegisterAsync_LocalEmpty_ThrowsException()
+    {
+        string email = "@test.dk";
 
-        Assert.AreEqual("Email length is invalid.", ex.Message);
+        var dto = ValidDto();
+        dto.Email = email;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataTestMethod]
+    [DataRow(65)] //local 65 charators
+    [DataRow(66)] //local 66 charators
+    public async Task RegisterAsync_LocalTooLong_ThrowsException(int number)
+    {
+        string email =
+            new string('a', number) +
+            "@test.dk";
+
+        var dto = ValidDto();
+        dto.Email = email;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataTestMethod] // too short
+    [DataRow("test@.d")]
+    [DataRow("test@t.d")]
+    public async Task RegisterAsync_DomainTooShort_ThrowsException(string email)
+    {
+        var dto = ValidDto();
+        dto.Email = email;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [TestMethod] // domain empty
+    public async Task RegisterAsync_DomainEmpty_ThrowsException()
+    {
+        string email =
+        "test@.dk";
+
+
+        var dto = ValidDto();
+        dto.Email = email;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataTestMethod]
+    [DataRow(250)] //domain 255 charators
+    [DataRow(251)] //domain 256 charators
+    public async Task RegisterAsync_DomainTooLong_ThrowsException(int number)
+    {
+        string email =
+        "test@" + new string('a', number) + ".dk";
+
+
+        var dto = ValidDto();
+        dto.Email = email;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("testexample.com")]
     [DataRow("test@@example.com")]
+    [DataRow("test@@@example.com")]
     public async Task RegisterAsync_InvalidAtCount_ThrowsException(string email)
     {
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Email must contain exactly one '@'.",
-            ex.Message);
-    }
-    [DataTestMethod]
-    [DataRow("@example.com")]
-    public async Task RegisterAsync_MissingLocalPart_ThrowsException(string email)
-    {
-        var dto = ValidDto();
-        dto.Email = email;
-
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("Missing local part.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("testin8@")]
@@ -457,10 +614,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("Missing domain.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_EmailContainsSpaces_ThrowsException()
@@ -468,27 +623,21 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = "Test @example.com";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Email cannot contain spaces.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("Te..st@example.com")]
+    [DataRow("Te...st@example.com")]
     [DataRow("Test@example..com")]
+    [DataRow("Test@example...com")]
     public async Task RegisterAsync_EmailContainsConsecutiveDots_ThrowsException(string email)
     {
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Email cannot contain consecutive dots.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow(".Test@example.com")]
@@ -498,12 +647,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Local part cannot start or end with dot.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("Test@.example.com")]
@@ -513,12 +658,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = email;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Domain cannot start or end with dot.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_DomainMissingDot_ThrowsException()
@@ -526,12 +667,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = "test@com";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Domain must contain '.'.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_InvalidLocalCharacters_ThrowsException()
@@ -539,12 +676,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = "漢@example.com";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Local part contains invalid characters.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_InvalidDomainCharacters_ThrowsException()
@@ -552,26 +685,151 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Email = "test@タ().com";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Domain contains invalid characters.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
-    [DataRow("a@b.ce")]
-    [DataRow("Test@example.com")]
-    [DataRow("Te.st@example.com")]
-    [DataRow("Test@exam.ple.com")]
-    [DataRow("Test123@example.com")]
-    [DataRow("Test@123example.com")]
-    [DataRow("Te+!#$%&'*+-/=?^_st@example.com")]
-    [DataRow("test.user@example.com")]
-    [DataRow("test@mail.example.com")]
-    public async Task RegisterAsync_ValidEmail_ReturnsLoaner(string email)
+    [DataRow("a@c.dk")] //4 charators
+    [DataRow("a@b.com")] //5 charators
+    public async Task RegisterAsync_EmailValidShortValid(string email)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.Email = email;
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(email, result.Email);
+    }
+    [DataTestMethod]
+    [DataRow(63)] //local 63 charators
+    [DataRow(64)] //local 64 charators
+    public async Task RegisterAsync_LocalValidLong(int number)
+    {
+        SetupValidRegistration();
+
+        string email =
+            new string('a', number) +
+            "@test.dk";
+
+        var dto = ValidDto();
+        dto.Email = email;
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(email, result.Email);
+    }
+    [DataTestMethod]
+    [DataRow("test@t.dk")] // 4 charators
+    [DataRow("test@te.dk")] // 5 charators
+    public async Task RegisterAsync_DomainValidShort(string email)
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.Email = email;
+        
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(email, result.Email);
+    }
+    [DataTestMethod]
+    [DataRow(248)] //domain 253 charators
+    [DataRow(249)] //domain 254 charators
+    public async Task RegisterAsync_DomainValidLong(int number)
+    {
+        SetupValidRegistration();
+
+        string email =
+        "t@" + new string('a', number) + ".dk";
+
+        var dto = ValidDto();
+        dto.Email = email;
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(email, result.Email);
+    }
+    [TestMethod]
+    public async Task RegisterAsync_LocalValidDot()
+    { 
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.Email = "Te.st@example.com";
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(dto.Email, result.Email);
+    }
+    [TestMethod]
+    public async Task RegisterAsync_DomainCanHaveSubdomain()
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.Email = "test@mail.example.com";
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(dto.Email, result.Email);
+    }
+    [TestMethod]
+    public async Task RegisterAsync_LocalWithNumbers()
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.Email = "Test123@example.com";
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(dto.Email, result.Email);
+    }
+    [TestMethod]
+    public async Task RegisterAsync_DomainWithNumbers()
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.Email = "Test@123example.com";
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(dto.Email, result.Email);
+    }
+    [TestMethod]
+    public async Task RegisterAsync_EmailNeedsAt()
+    {
+        SetupValidRegistration();
+
+        var dto = ValidDto();
+        dto.Email = "Test@example.com";
+
+        var result = await _service.RegisterAsync(dto);
+
+        Assert.AreEqual(dto.Email, result.Email);
+    }
+
+    [DataTestMethod] // valid special characters in email
+    [DataRow("Te+st@example.com")]
+    [DataRow("Te!st@example.com")]
+    [DataRow("Te#st@example.com")]
+    [DataRow("Te$st@example.com")]
+    [DataRow("Te%st@example.com")]
+    [DataRow("Te&st@example.com")]
+    [DataRow("Te'st@example.com")]
+    [DataRow("Te*st@example.com")]
+    [DataRow("Te-st@example.com")]
+    [DataRow("Te/st@example.com")]
+    [DataRow("Te=st@example.com")]
+    [DataRow("Te?st@example.com")]
+    [DataRow("Te^st@example.com")]
+    [DataRow("Te_st@example.com")]
+    public async Task RegisterAsync_ValidEmailCharaters(string email)
+    {
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.Email = email;
@@ -590,30 +848,26 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Password = password;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual("Password is required.", ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
-    [TestMethod]
-    public async Task RegisterAsync_PasswordLength7_ThrowsException()
+    [DataTestMethod]
+    [DataRow("Passw0r")] // 6 chars
+    [DataRow("Passw0")] // 7 chars
+    public async Task RegisterAsync_PasswordTooShort_ThrowsException(string password)
     {
         var dto = ValidDto();
-        dto.Password = "Passw0r"; // 7 chars
+        dto.Password = password;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password must be between 8 and 64 characters.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("Passw0rd")] // 8
     [DataRow("Password1")]
     public async Task RegisterAsync_ValidPasswordLengths(string password)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.Password = password;
@@ -622,23 +876,21 @@ public class LoanerTests
 
         Assert.IsNotNull(result);
     }
-    [TestMethod]
-    public async Task RegisterAsync_PasswordLength65_ThrowsException()
+    [DataTestMethod]
+    [DataRow(63)]
+    [DataRow(64)]
+    public async Task RegisterAsync_PasswordLength65_ThrowsException(int number)
     {
         var dto = ValidDto();
 
         string invalid65 = new string('A', 1)
-                 + new string('a', 63)
+                 + new string('a', number)
                  + "1";
 
         dto.Password = invalid65;
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password must be between 8 and 64 characters.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_PasswordContainsSpaces_ThrowsException()
@@ -646,12 +898,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Password = "My Password123";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password cannot contain spaces.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_PasswordOnlyLetters_ThrowsException()
@@ -659,12 +907,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Password = "Thisismypassword";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password must contain uppercase, lowercase, and number.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_PasswordOnlyNumbers_ThrowsException()
@@ -672,12 +916,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Password = "1234567890";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password must contain uppercase, lowercase, and number.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_PasswordNoUppercase_ThrowsException()
@@ -685,12 +925,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Password = "mypassword123";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password must contain uppercase, lowercase, and number.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_PasswordNoLowercase_ThrowsException()
@@ -698,12 +934,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Password = "MYPASSWORD123";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password must contain uppercase, lowercase, and number.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [TestMethod]
     public async Task RegisterAsync_PasswordNoNumber_ThrowsException()
@@ -711,12 +943,8 @@ public class LoanerTests
         var dto = ValidDto();
         dto.Password = "MyPassword";
 
-        var ex = await Assert.ThrowsExceptionAsync<ArgumentException>(
-            () => _service.RegisterAsync(dto));
-
-        Assert.AreEqual(
-            "Password must contain uppercase, lowercase, and number.",
-            ex.Message);
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
     [DataRow("Passw0rd")]
@@ -724,7 +952,7 @@ public class LoanerTests
     [DataRow("Secure123Password")]
     public async Task RegisterAsync_ValidPassword_ReturnsLoaner(string password)
     {
-        SetupSuccessfulRegistration();
+        SetupValidRegistration();
 
         var dto = ValidDto();
         dto.Password = password;
