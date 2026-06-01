@@ -3,16 +3,37 @@ using LibraryAPI.Services;
 using LibrarySQLBackend.Context;
 using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories;
+using LibraryTestUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LibraryTestProject.Integration
 {
     [TestClass]
+    [DoNotParallelize]
     public class FineIntegrationTests
     {
-        private const string ConnectionString =
-            "server=localhost;port=3307;database=mydb_test;user=root;password=1234";
+        private static TestDatabaseHelper CreateDatabaseHelper()
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanIntegrationTests>()
+                .Build();
+
+            var connectionString = configuration.GetConnectionString("TestConnection")
+                ?? throw new InvalidOperationException("Missing test database connection string.");
+
+            return new TestDatabaseHelper(connectionString);
+        }
+
+
+        [TestInitialize]
+        public async Task ResetDatabaseBeforeEachTest()
+        {
+            var databaseHelper = CreateDatabaseHelper();
+
+            await databaseHelper.ResetAndSeedDatabaseAsync();
+        }
 
         // Integration test - happy path:
         // Tests that FineService, FineRepository, LoanRepository,
@@ -22,7 +43,9 @@ namespace LibraryTestProject.Integration
         public async Task CreateAsync_OverdueLoanWithoutFine_SavesFineInDatabase()
         {
             // Arrange
-            await using var context = CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
             var service = CreateService(context);
 
             var existingLoan = await context.Loans.FirstAsync();
@@ -63,7 +86,9 @@ namespace LibraryTestProject.Integration
         public async Task PayFineAsync_UnpaidFine_UpdatesFineStatusInDatabase()
         {
             // Arrange
-            await using var context = CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
             var service = CreateService(context);
 
             var existingLoan = await context.Loans.FirstAsync();
@@ -102,17 +127,6 @@ namespace LibraryTestProject.Integration
             Assert.AreEqual("paid", fine.Status);
         }
 
-        // Creates a real EF Core DbContext connected to the MySQL test database.
-        private static AppDbContext CreateContext()
-        {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseMySql(
-                    ConnectionString,
-                    ServerVersion.AutoDetect(ConnectionString))
-                .Options;
-
-            return new AppDbContext(options);
-        }
 
         // Creates the real service with real repositories.
         // No mocks are used here because this is an integration test.
