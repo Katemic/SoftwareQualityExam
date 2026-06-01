@@ -50,7 +50,8 @@ namespace LibraryTestProject.Integration
 
             var dto = new CreateFineDto
             {
-                LoanId = TestIds.LoanWithoutFineId
+                LoanId = TestIds.LoanWithoutFineId,
+                Amount = 20
             };
 
             // Act
