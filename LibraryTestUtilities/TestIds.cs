@@ -27,5 +27,7 @@ namespace LibraryTestUtilities
         public const int QueueNumber3 = 32;
  
         public const int UpdateReservationId = 1;
+        public const int LoanWithoutFineId = 2;
+        public const int UnpaidFineId = 1;
     }
 }
