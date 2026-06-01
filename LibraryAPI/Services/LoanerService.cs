@@ -164,10 +164,7 @@ namespace LibraryAPI.Services
             foreach (var label in labels)
             {
                 if (string.IsNullOrWhiteSpace(label))
-                    throw new ArgumentException("Invalid domain label.");
-
-                if (label.StartsWith("-") || label.EndsWith("-"))
-                    throw new ArgumentException("Domain labels cannot start or end with '-'.");
+                    throw new ArgumentException("Invalid label.");
             }
         }
         private void ValidatePassword(string? password)
