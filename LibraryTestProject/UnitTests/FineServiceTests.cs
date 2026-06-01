@@ -74,37 +74,6 @@ namespace LibraryTestProject.UnitTests
             Assert.AreEqual(amount, result.Amount);
         }
 
-        // Black-box format test:
-        // Invalid format partition: text input.
-        // Expected result: amount cannot be parsed as integer.
-        //[TestMethod]
-        //public void FineAmount_TextInput_IsInvalid()
-        //{
-        //    // Arrange
-        //    string input = "abc";
-
-        //    // Act
-        //    var canParse = int.TryParse(input, out _);
-
-        //    // Assert
-        //    Assert.IsFalse(canParse);
-        //}
-
-        //// Black-box format test:
-        //// Invalid format partition: special characters.
-        //// Expected result: amount cannot be parsed as integer.
-        //[TestMethod]
-        //public void FineAmount_SpecialCharacters_IsInvalid()
-        //{
-        //    // Arrange
-        //    string input = "!#€";
-
-        //    // Act
-        //    var canParse = int.TryParse(input, out _);
-
-        //    // Assert
-        //    Assert.IsFalse(canParse);
-        //}
 
         // Black-box equivalence partition test:
         // Valid partition: fine is unpaid when created.
@@ -170,40 +139,7 @@ namespace LibraryTestProject.UnitTests
             Assert.AreNotEqual("paid", result.Status);
         }
 
-        // Black-box test:
-        // Valid test case: created date is today.
-        // Expected result: created date is valid and set to today.
-        //[TestMethod]
-        //public async Task CreateAsync_WhenFineCreated_CreatedDateIsToday()
-        //{
-        //    // Arrange
-        //    var fineRepositoryMock = new Mock<IFineRepository>();
-        //    var loanRepositoryMock = new Mock<ILoanRepository>();
-        //    var service = CreateService(fineRepositoryMock, loanRepositoryMock);
-
-        //    var dto = new CreateFineDto
-        //    {
-        //        LoanId = 1,
-        //        Amount = 20
-        //    };
-
-        //    var loan = CreateLoan(dto.LoanId, DateTime.Now.AddDays(-1));
-
-        //    SetupValidFineCreation(
-        //        fineRepositoryMock,
-        //        loanRepositoryMock,
-        //        dto,
-        //        loan);
-
-        //    // Act
-        //    var result = await service.CreateAsync(dto);
-
-        //    // Assert
-        //    Assert.AreEqual(DateTime.Now.Date, result.CreatedDate.Date);
-        //}
-        // Black-box test:
-        // Valid partition: fine is unpaid.
-        // Expected result: fine status is changed to paid.
+        
         [TestMethod]
         public async Task PayFineAsync_WhenFineIsUnpaid_SetsStatusToPaid()
         {
