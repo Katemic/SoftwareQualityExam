@@ -112,7 +112,7 @@ namespace LibraryAPI.Services
             };
             return reservationDto;
         }
-       
+
         private async Task<int> ValidateData(CreateReservationDto createReservationDto, int loanerId)
         {
             if (!await _reservationRepository.ItemExistsAsync(createReservationDto.ItemId))
@@ -124,29 +124,38 @@ namespace LibraryAPI.Services
             {
                 throw new KeyNotFoundException("Loaner not found.");
             }
-            var loanerReservations = await _reservationRepository.GetByLoanerId(loanerId);
+
+            var loanerReservations =
+                await _reservationRepository.GetByLoanerId(loanerId)
+                ?? new List<Reservation>();
+
             if (loanerReservations.Count >= 3)
             {
-                throw new InvalidOperationException("Loaner has reached the maximum number of active reservations.");
+                throw new InvalidOperationException(
+                    "Loaner has reached the maximum number of active reservations.");
             }
-            var existingReservations = await _reservationRepository.GetByItemIdAsync(createReservationDto.ItemId);
 
-            // Get next queue number
-            var nextQueueNumber = existingReservations?.Count + 1 ?? 1;
+            var existingReservations =
+                await _reservationRepository.GetByItemIdAsync(createReservationDto.ItemId)
+                ?? new List<Reservation>();
 
-            if(existingReservations.Contains(existingReservations.FirstOrDefault(r => r.QueueNumber == nextQueueNumber)))
+            if (existingReservations.Any(r => r.LoanerId == loanerId))
             {
-                throw new InvalidOperationException("Queue number already exists for this item.");
+                throw new InvalidOperationException(
+                    "Loaner has already reserved this item.");
             }
+
+            var nextQueueNumber = existingReservations.Count + 1;
 
             if (nextQueueNumber > 100)
             {
                 throw new InvalidOperationException("Reservation queue is full.");
             }
 
-            if (existingReservations.Contains(existingReservations.FirstOrDefault(r => r.LoanerId == loanerId)))
+            if (existingReservations.Any(r => r.QueueNumber == nextQueueNumber))
             {
-                throw new InvalidOperationException("Loaner has already reserved this item.");
+                throw new InvalidOperationException(
+                    "Queue number already exists for this item.");
             }
 
             return nextQueueNumber;
