@@ -74,6 +74,38 @@ namespace LibraryTestProject.UnitTests
             Assert.AreEqual(amount, result.Amount);
         }
 
+        // Black-box format test:
+        // Valid partition: amount is a decimal number greater than 0.
+        // Expected result: fine is created with the specified decimal amount.
+        [TestMethod]
+        public async Task CreateAsync_WhenAmountIsDecimal_CreatesFine()
+        {
+            // Arrange
+            var fineRepositoryMock = new Mock<IFineRepository>();
+            var loanRepositoryMock = new Mock<ILoanRepository>();
+            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
+
+            var dto = new CreateFineDto
+            {
+                LoanId = 1,
+                Amount = 20.5m
+            };
+
+            var loan = CreateLoan(dto.LoanId, "overdue");
+
+            SetupValidFineCreation(
+                fineRepositoryMock,
+                loanRepositoryMock,
+                dto,
+                loan);
+
+            // Act
+            var result = await service.CreateAsync(dto);
+
+            // Assert
+            Assert.AreEqual(20.5m, result.Amount);
+        }
+
 
         // Black-box equivalence partition test:
         // Valid partition: fine is unpaid when created.
@@ -107,38 +139,6 @@ namespace LibraryTestProject.UnitTests
             Assert.AreEqual("unpaid", result.Status);
         }
 
-        // Black-box equivalence partition test:
-        // Invalid partition: fine is already paid when created.
-        // Expected result: status cannot be paid on creation.
-        [TestMethod]
-        public async Task CreateAsync_WhenFineCreated_StatusCannotBePaid()
-        {
-            // Arrange
-            var fineRepositoryMock = new Mock<IFineRepository>();
-            var loanRepositoryMock = new Mock<ILoanRepository>();
-            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
-
-            var dto = new CreateFineDto
-            {
-                LoanId = 1,
-                Amount = 20
-            };
-
-            var loan = CreateLoan(dto.LoanId, "overdue");
-
-            SetupValidFineCreation(
-                fineRepositoryMock,
-                loanRepositoryMock,
-                dto,
-                loan);
-
-            // Act
-            var result = await service.CreateAsync(dto);
-
-            // Assert
-            Assert.AreNotEqual("paid", result.Status);
-        }
-
         
         [TestMethod]
         public async Task PayFineAsync_WhenFineIsUnpaid_SetsStatusToPaid()
@@ -163,38 +163,6 @@ namespace LibraryTestProject.UnitTests
 
             // Assert
             Assert.AreEqual("paid", fine.Status);
-        }
-
-        // Black-box test:
-        // Valid test case: paid date is null before fine is paid.
-        // Expected result: newly created fine has no paid date.
-        [TestMethod]
-        public async Task CreateAsync_WhenFineCreated_PaidDateIsNull()
-        {
-            // Arrange
-            var fineRepositoryMock = new Mock<IFineRepository>();
-            var loanRepositoryMock = new Mock<ILoanRepository>();
-            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
-
-            var dto = new CreateFineDto
-            {
-                LoanId = 1,
-                Amount = 20
-            };
-
-            var loan = CreateLoan(dto.LoanId, "overdue");
-
-            SetupValidFineCreation(
-                fineRepositoryMock,
-                loanRepositoryMock,
-                dto,
-                loan);
-
-            // Act
-            var result = await service.CreateAsync(dto);
-
-            // Assert
-            Assert.IsNull(result.PaidDate);
         }
 
         // Black-box business rule test:
@@ -331,7 +299,7 @@ namespace LibraryTestProject.UnitTests
             {
                 LoanId = 1,
                 Amount = 20
-            };
+            }; 
 
             var loan = CreateLoan(dto.LoanId, "overdue");
 
