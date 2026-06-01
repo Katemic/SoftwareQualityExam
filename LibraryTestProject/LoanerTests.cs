@@ -399,6 +399,26 @@ public class LoanerTests
     () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
+    [DataRow("+34A 12345678")]
+    public async Task RegisterAsync_CountryCodeHasChar_Throws(string phone)
+    {
+        var dto = ValidDto();
+        dto.Tlf = phone;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataTestMethod]
+    [DataRow("+3 12V45678")]
+    public async Task RegisterAsync_NumberHasChar_Throws(string phone)
+    {
+        var dto = ValidDto();
+        dto.Tlf = phone;
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [DataTestMethod]
     [DataRow("+1234 12345678")]
     [DataRow("+12345 12345678")]
     public async Task RegisterAsync_CountryCodeTooLong_Throws(string phone)
