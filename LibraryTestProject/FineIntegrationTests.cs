@@ -3,46 +3,54 @@ using LibraryAPI.Services;
 using LibrarySQLBackend.Context;
 using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories;
+using LibraryTestUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LibraryTestProject.Integration
 {
     [TestClass]
+    [DoNotParallelize]
     public class FineIntegrationTests
     {
-        private const string ConnectionString =
-            "server=localhost;port=3307;database=mydb_test;user=root;password=1234";
+        private static TestDatabaseHelper CreateDatabaseHelper()
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<LoanIntegrationTests>()
+                .Build();
+
+            var connectionString = configuration.GetConnectionString("TestConnection")
+                ?? throw new InvalidOperationException("Missing test database connection string.");
+
+            return new TestDatabaseHelper(connectionString);
+        }
+
+
+        [TestInitialize]
+        public async Task ResetDatabaseBeforeEachTest()
+        {
+            var databaseHelper = CreateDatabaseHelper();
+
+            await databaseHelper.ResetAndSeedDatabaseAsync();
+        }
 
         // Integration test - happy path:
         // Tests that FineService, FineRepository, LoanRepository,
         // AppDbContext and MySQL work together.
-        // Scenario: an overdue loan without a fine gets a new unpaid fine saved in the database.
+        // Scenario: a seeded loan without a fine gets a new unpaid fine saved in the database.
         [TestMethod]
-        public async Task CreateAsync_OverdueLoanWithoutFine_SavesFineInDatabase()
+        public async Task CreateAsync_LoanWithoutFine_SavesFineInDatabase()
         {
             // Arrange
-            await using var context = CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
             var service = CreateService(context);
-
-            var existingLoan = await context.Loans.FirstAsync();
-
-            var testLoan = new Loan
-            {
-                LoanDate = DateTime.Now.AddDays(-20),
-                DueDate = DateTime.Now.AddDays(-5),
-                ReturnDate = null,
-                Status = "overdue",
-                LoanerId = existingLoan.LoanerId,
-                InventoryId = existingLoan.InventoryId
-            };
-
-            context.Loans.Add(testLoan);
-            await context.SaveChangesAsync();
 
             var dto = new CreateFineDto
             {
-                LoanId = testLoan.Id
+                LoanId = TestIds.LoanWithoutFineId
             };
 
             // Act
@@ -53,66 +61,36 @@ namespace LibraryTestProject.Integration
                 .FirstAsync(f => f.Id == result.Id);
 
             Assert.AreEqual("unpaid", savedFine.Status);
+            Assert.AreEqual(TestIds.LoanWithoutFineId, savedFine.LoanId);
         }
 
         // Integration test - happy path:
-        // Tests that FineService, FineRepository, LoanRepository,
+        // Tests that FineService, FineRepository,
         // AppDbContext and MySQL work together.
-        // Scenario: an unpaid fine is paid and the status is updated in the database.
+        //
+        // Scenario:
+        // An unpaid fine already exists in the database.
+        // The fine is paid.
+        // The fine status is updated to paid in the database.
         [TestMethod]
         public async Task PayFineAsync_UnpaidFine_UpdatesFineStatusInDatabase()
         {
             // Arrange
-            await using var context = CreateContext();
+            var databaseHelper = CreateDatabaseHelper();
+
+            await using var context = databaseHelper.CreateContext();
             var service = CreateService(context);
 
-            var existingLoan = await context.Loans.FirstAsync();
-
-            var testLoan = new Loan
-            {
-                LoanDate = DateTime.Now.AddDays(-20),
-                DueDate = DateTime.Now.AddDays(-5),
-                ReturnDate = null,
-                Status = "overdue",
-                LoanerId = existingLoan.LoanerId,
-                InventoryId = existingLoan.InventoryId
-            };
-
-            context.Loans.Add(testLoan);
-            await context.SaveChangesAsync();
-
-            var fine = new Fine
-            {
-                Amount = 20,
-                Status = "unpaid",
-                CreatedDate = DateTime.Now,
-                PaidDate = null,
-                LoanId = testLoan.Id
-            };
-
-            context.Fines.Add(fine);
-            await context.SaveChangesAsync();
-
             // Act
-            await service.PayFineAsync(fine.Id);
+            await service.PayFineAsync(TestIds.UnpaidFineId);
 
             // Assert
-            await context.Entry(fine).ReloadAsync();
+            var fine = await context.Fines
+                .FirstAsync(f => f.Id == TestIds.UnpaidFineId);
 
             Assert.AreEqual("paid", fine.Status);
         }
 
-        // Creates a real EF Core DbContext connected to the MySQL test database.
-        private static AppDbContext CreateContext()
-        {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseMySql(
-                    ConnectionString,
-                    ServerVersion.AutoDetect(ConnectionString))
-                .Options;
-
-            return new AppDbContext(options);
-        }
 
         // Creates the real service with real repositories.
         // No mocks are used here because this is an integration test.
