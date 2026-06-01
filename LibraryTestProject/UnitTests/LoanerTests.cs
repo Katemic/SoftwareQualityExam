@@ -152,7 +152,7 @@ public class LoanerTests
 
     [DataTestMethod]
     [DataRow("José")]
-    [DataRow("Anne-Marie")]
+    [DataRow("Anne Marie")]
     [DataRow("Anne-Marie")]
     [DataRow("O'Connor")]
     public async Task RegisterAsync_FirstNameSpecialCharacters_Valid(string name)
@@ -257,7 +257,7 @@ public class LoanerTests
 
     [DataTestMethod]
     [DataRow("José")]
-    [DataRow("Anne-Marie")]
+    [DataRow("Anne Marie")]
     [DataRow("Anne-Marie")]
     [DataRow("O'Connor")]
     public async Task RegisterAsync_LastNameSpecialCharacters_Valid(string name)

@@ -13,7 +13,6 @@ namespace LibraryAPI.Services
         private readonly IInventoryRepository _inventoryRepository;
         private readonly ILoanerRepository _loanerRepository;
 
-        private const int LoanPeriodInDays = 14;
         private const int MaxActiveLoans = 3;
 
         public LoanService(ILoanRepository loanRepository, IInventoryRepository inventoryRepository, ILoanerRepository loanerRepository)
@@ -70,8 +69,6 @@ namespace LibraryAPI.Services
             {
                 LoanerId = dto.LoanerId,
                 InventoryId = dto.InventoryId,
-                LoanDate = loanDate,
-                DueDate = loanDate.AddDays(LoanPeriodInDays),
                 ReturnDate = null,
                 Status = "active"
             };

@@ -12,6 +12,8 @@ namespace LibraryAPI.Services
 {
     public class LoanerService : ILoanerService
     {
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(250);
+
         private readonly ILoanerRepository _loanerRepository;
         private readonly IPasswordHasher<Loaner> _passwordHasher;
         private readonly IConfiguration _configuration;
@@ -47,7 +49,7 @@ namespace LibraryAPI.Services
             if (firstName.Length < 2 || firstName.Length > 100)
                 throw new ArgumentException("First name must be between 2 and 100 characters.");
 
-            if (!Regex.IsMatch(firstName, @"^[A-Za-zÀ-ÿ' -]+$"))
+            if (!Regex.IsMatch(firstName, @"^[A-Za-zÀ-ÿ' -]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("First name contains invalid characters.");
 
             if (string.IsNullOrWhiteSpace(lastName))
@@ -56,7 +58,7 @@ namespace LibraryAPI.Services
             if (lastName.Length < 2 || lastName.Length > 100)
                 throw new ArgumentException("Last name must be between 2 and 100 characters.");
 
-            if (!Regex.IsMatch(lastName, @"^[A-Za-zÀ-ÿ' -]+$"))
+            if (!Regex.IsMatch(lastName, @"^[A-Za-zÀ-ÿ' -]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("Last name contains invalid characters.");
         }
         private void ValidateCPR(string? cpr)
@@ -64,7 +66,7 @@ namespace LibraryAPI.Services
             if (string.IsNullOrWhiteSpace(cpr))
                 throw new ArgumentException("CPR is required.");
 
-            if (!Regex.IsMatch(cpr, @"^\d{10}$"))
+            if (!Regex.IsMatch(cpr, @"^\d{10}$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("CPR must contain exactly 10 digits.");
 
             var datePart = cpr.Substring(0, 6);
@@ -153,10 +155,10 @@ namespace LibraryAPI.Services
             if (domain.Length < 4 || domain.Length > 253)
                 throw new ArgumentException("Domain part length is invalid.");
 
-            if (!Regex.IsMatch(local, @"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$"))
+            if (!Regex.IsMatch(local, @"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("Local part contains invalid characters.");
 
-            if (!Regex.IsMatch(domain, @"^[A-Za-z0-9.-]+$"))
+            if (!Regex.IsMatch(domain, @"^[A-Za-z0-9.-]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("Domain contains invalid characters.");
 
             var labels = domain.Split('.');
