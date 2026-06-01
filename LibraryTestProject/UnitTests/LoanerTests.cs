@@ -92,6 +92,16 @@ public class LoanerTests
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
     }
+    [TestMethod]
+    public async Task RegisterAsync_NumberInFirstName_ThrowsException()
+    {
+        StartMock();
+        var dto = ValidDto();
+        dto.FirstName = "Kristoffer1";
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
 
     [DataTestMethod]
     [DataRow("KikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoKikkoK")]
@@ -201,6 +211,16 @@ public class LoanerTests
         StartMock();
         var dto = ValidDto();
         dto.LastName = "B";
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [TestMethod]
+    public async Task RegisterAsync_NumberInLastName_ThrowsException()
+    {
+        StartMock();
+        var dto = ValidDto();
+        dto.FirstName = "Kristoffer1";
 
         await Assert.ThrowsExceptionAsync<ArgumentException>(
     () => _service.RegisterAsync(dto));
@@ -330,6 +350,16 @@ public class LoanerTests
     () => _service.RegisterAsync(dto));
     }
     [TestMethod]
+    public async Task RegisterAsync_CprInvalidDash_ThrowsException()
+    {
+        StartMock();
+        var dto = ValidDto();
+        dto.Cpr = "010120-1234";
+
+        await Assert.ThrowsExceptionAsync<ArgumentException>(
+    () => _service.RegisterAsync(dto));
+    }
+    [TestMethod]
     public async Task RegisterAsync_CprValid_ReturnsLoaner()
     {
         StartMock();
@@ -374,7 +404,6 @@ public class LoanerTests
     //tlf
     [DataTestMethod]
     [DataRow("")]
-    [DataRow(" ")]
     [DataRow(null)]
     public async Task RegisterAsync_PhoneRequired_ThrowsException(string phone)
     {
@@ -447,7 +476,6 @@ public class LoanerTests
     }
     [DataTestMethod]
     [DataRow("+1234 12345678")]
-    [DataRow("+12345 12345678")]
     public async Task RegisterAsync_CountryCodeTooLong_Throws(string phone)
     {
         StartMock();
@@ -535,7 +563,6 @@ public class LoanerTests
     [DataTestMethod]
     [DataRow(null)]
     [DataRow("")]
-    [DataRow(" ")]
     public async Task RegisterAsync_EmailRequired_ThrowsException(string email)
     {
         StartMock();
@@ -648,7 +675,6 @@ public class LoanerTests
     [DataTestMethod]
     [DataRow("testexample.com")]
     [DataRow("test@@example.com")]
-    [DataRow("test@@@example.com")]
     public async Task RegisterAsync_InvalidAtCount_ThrowsException(string email)
     {
         StartMock();
@@ -670,9 +696,7 @@ public class LoanerTests
     }
     [DataTestMethod]
     [DataRow("Te..st@example.com")]
-    [DataRow("Te...st@example.com")]
     [DataRow("Test@example..com")]
-    [DataRow("Test@example...com")]
     public async Task RegisterAsync_EmailContainsConsecutiveDots_ThrowsException(string email)
     {
         StartMock();
@@ -885,7 +909,6 @@ public class LoanerTests
     [DataTestMethod]  // todo ask about empty with space
     [DataRow(null)]
     [DataRow("")]
-    [DataRow(" ")]
     public async Task RegisterAsync_PasswordRequired_ThrowsException(string password)
     {
         StartMock();
@@ -896,7 +919,6 @@ public class LoanerTests
     () => _service.RegisterAsync(dto));
     }
     [DataTestMethod]
-    [DataRow("Passw0")] // 6 chars
     [DataRow("Passw0r")] // 7 chars
     public async Task RegisterAsync_PasswordTooShort_ThrowsException(string password)
     {

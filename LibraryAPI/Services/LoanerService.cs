@@ -115,8 +115,8 @@ namespace LibraryAPI.Services
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email is required.");
 
-            if (email.Length < 6 || email.Length > 254)
-                throw new ArgumentException("Email length is invalid.");
+            if (email.Length < 6)
+                throw new ArgumentException("Email is too small");
 
             if (email.Count(c => c == '@') != 1)
                 throw new ArgumentException("Email must contain exactly one '@'.");
@@ -152,6 +152,11 @@ namespace LibraryAPI.Services
 
             if (domain.Length < 4 || domain.Length > 253)
                 throw new ArgumentException("Domain part length is invalid.");
+
+            if (email.Length > 254)
+            {
+                throw new ArgumentException("Email length exceeds maximum allowed.");
+            }
 
             if (!Regex.IsMatch(local, @"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("Local part contains invalid characters.");
