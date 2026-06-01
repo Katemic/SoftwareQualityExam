@@ -9,6 +9,6 @@ namespace LibraryAPI.Services.Interfaces
         Task<List<ReservationDto>> GetAllReservations();
         Task<List<ReservationDto>> GetAllLoanersReservation(int loanerId);
         Task<ReservationDto?> UpdateReservation(int id, Enum status);
-        Task<bool> DeleteReservation(int itemId, int loanerid);
+        Task<bool> DeleteReservation(int itemId, int loanerId);
     }
 }
