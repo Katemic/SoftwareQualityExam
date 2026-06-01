@@ -16,5 +16,6 @@ namespace LibrarySQLBackend.Repositories.Interfaces
         Task<bool> HasUnpaidFineAsync(int loanerId);
         Task<int> CountActiveLoansAsync(int loanerId);
         Task<bool> HasOverdueLoanAsync(int loanerId);
+        Task<IEnumerable<Loan>> GetAllByLoanerIdAsync(int loanerId, bool includeReturned);
     }
 }

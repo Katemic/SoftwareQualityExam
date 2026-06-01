@@ -47,6 +47,10 @@ builder.Services.AddScoped<IFineService, FineService>();
 
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
+
+builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+
 // JWT settings
 var jwtKey = builder.Configuration["Jwt:Key"]
              ?? throw new InvalidOperationException("Missing Jwt:Key");
@@ -120,6 +124,21 @@ builder.Services
             new JsonStringEnumConverter());
     });
 
+//CORS policy for frontend development
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
@@ -128,8 +147,12 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 
+
+//app.UseHttpsRedirection();
+
+
+app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 

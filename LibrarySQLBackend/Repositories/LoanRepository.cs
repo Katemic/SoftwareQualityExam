@@ -96,5 +96,23 @@ namespace LibrarySQLBackend.Repositories
         }
 
 
+        public async Task<IEnumerable<Loan>> GetAllByLoanerIdAsync(int loanerId, bool includeReturned)
+        {
+            var query = _context.Loans
+                .Include(l => l.Inventory)
+                    .ThenInclude(i => i.Item)
+                .Include(l => l.Loaner)
+                .Where(l => l.LoanerId == loanerId);
+
+            if (!includeReturned)
+            {
+                query = query.Where(l => l.ReturnDate == null);
+            }
+
+            return await query
+                .OrderByDescending(l => l.LoanDate)
+                .ToListAsync();
+        }
+
     }
 }

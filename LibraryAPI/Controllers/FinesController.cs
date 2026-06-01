@@ -7,7 +7,7 @@ namespace LibraryAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
+    [Authorize]
     public class FinesController : ControllerBase
     {
         private readonly IFineService _fineService;

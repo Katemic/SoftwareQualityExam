@@ -2,6 +2,7 @@
 using LibraryAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LibraryAPI.Controllers
 {
@@ -59,6 +60,22 @@ namespace LibraryAPI.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("my-loans")]
+        public async Task<IActionResult> GetMyLoans([FromQuery] bool includeReturned = false)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+                return Unauthorized(new { message = "User id was not found in token." });
+
+            if (!int.TryParse(userIdClaim, out var loanerId))
+                return Unauthorized(new { message = "Invalid user id in token." });
+
+            var loans = await _loanService.GetMyLoansAsync(loanerId, includeReturned);
+
+            return Ok(loans);
         }
     }
 }

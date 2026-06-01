@@ -20,5 +20,12 @@ namespace LibraryTestUtilities
         public const int ThreeActiveLoansInventoryId1 = 31;
         public const int ThreeActiveLoansInventoryId2 = 32;
         public const int ThreeActiveLoansInventoryId3 = 33;
+
+        public const int LoanerWithThreeReservationsId = 20;
+        public const int QueueNumber1 = 30;
+        public static readonly int[] QueueNumber2 = { 20, 31 };
+        public const int QueueNumber3 = 32;
+ 
+        public const int UpdateReservationId = 1;
     }
 }

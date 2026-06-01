@@ -94,6 +94,39 @@ namespace LibraryAPI.Services
             await _loanRepository.ReturnLoanAsync(loanId);
         }
 
+        public async Task<IEnumerable<SeeLoanDto>> GetMyLoansAsync(int loanerId, bool includeReturned)
+        {
+            var loans = await _loanRepository.GetAllByLoanerIdAsync(loanerId, includeReturned);
+
+            return loans.Select(MapToSeeLoanDto);
+        }
+
+        private static SeeLoanDto MapToSeeLoanDto(Loan loan)
+        {
+            return new SeeLoanDto
+            {
+                Id = loan.Id,
+
+                LoanDate = loan.LoanDate,
+                DueDate = loan.DueDate,
+                ReturnDate = loan.ReturnDate,
+
+                Status = loan.Status,
+
+                LoanerId = loan.LoanerId,
+                InventoryId = loan.InventoryId,
+
+                InventoryStatus = loan.Inventory?.Status,
+                Barcode = loan.Inventory?.Barcode,
+                Placement = loan.Inventory?.Placement,
+
+                ItemId = loan.Inventory?.ItemId ?? 0,
+                ItemName = loan.Inventory?.Item?.Name,
+                MediaType = loan.Inventory?.Item?.MediaType,
+                ReleaseYear = loan.Inventory?.Item?.ReleaseYear
+            };
+        }
+
         private static LoanDto MapToDto(Loan loan)
         {
             return new LoanDto
@@ -109,24 +142,5 @@ namespace LibraryAPI.Services
             };
         }
 
-        private static string GetFriendlyDatabaseError(string message)
-        {
-            if (message.Contains("Copy does not exist"))
-                return "The selected inventory copy does not exist.";
-
-            if (message.Contains("Copy is not available"))
-                return "The selected inventory copy is not available.";
-
-            if (message.Contains("maximum"))
-                return "The loaner has reached the maximum number of active or overdue loans.";
-
-            if (message.Contains("Loan not found"))
-                return "The loan was not found.";
-
-            if (message.Contains("Loan already returned"))
-                return "The loan has already been returned.";
-
-            return message;
-        }
     }
 }

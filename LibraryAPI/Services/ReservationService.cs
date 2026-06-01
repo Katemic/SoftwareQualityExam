@@ -13,10 +13,12 @@ namespace LibraryAPI.Services
     public class ReservationService : IReservationService
     {
         private readonly IReservationRepository _reservationRepository;
+        private readonly ILoanRepository _loanRepository;
 
-        public ReservationService(IReservationRepository reservationRepository)
+        public ReservationService(IReservationRepository reservationRepository, ILoanRepository loanRepository)
         {
             _reservationRepository = reservationRepository;
+            _loanRepository = loanRepository;
         }
         public async Task<List<ReservationDto>> GetAllReservations()
         {
@@ -35,7 +37,7 @@ namespace LibraryAPI.Services
             {
                 throw new InvalidOperationException("Item is currently available for loan.");
             }   
-            if(await UserHasUnpaidFines(loanerId))
+            if(await _loanRepository.HasUnpaidFineAsync(loanerId))
             {
                 throw new InvalidOperationException("Loaner has unpaid fines and cannot make a reservation.");
             }
@@ -102,6 +104,7 @@ namespace LibraryAPI.Services
         {
             ReservationDto reservationDto = new ReservationDto
             {
+                Id = reservation.Id,
                 ItemId = reservation.ItemId,
                 LoanerId = reservation.LoanerId,
                 Status = reservation.Status,
@@ -109,7 +112,7 @@ namespace LibraryAPI.Services
             };
             return reservationDto;
         }
-       
+
         private async Task<int> ValidateData(CreateReservationDto createReservationDto, int loanerId)
         {
             if (!await _reservationRepository.ItemExistsAsync(createReservationDto.ItemId))
@@ -121,29 +124,38 @@ namespace LibraryAPI.Services
             {
                 throw new KeyNotFoundException("Loaner not found.");
             }
-            var loanerReservations = await _reservationRepository.GetByLoanerId(loanerId);
+
+            var loanerReservations =
+                await _reservationRepository.GetByLoanerId(loanerId)
+                ?? new List<Reservation>();
+
             if (loanerReservations.Count >= 3)
             {
-                throw new InvalidOperationException("Loaner has reached the maximum number of active reservations.");
+                throw new InvalidOperationException(
+                    "Loaner has reached the maximum number of active reservations.");
             }
-            var existingReservations = await _reservationRepository.GetByItemIdAsync(createReservationDto.ItemId);
 
-            // Get next queue number
-            var nextQueueNumber = existingReservations?.Count + 1 ?? 1;
+            var existingReservations =
+                await _reservationRepository.GetByItemIdAsync(createReservationDto.ItemId)
+                ?? new List<Reservation>();
 
-            if(existingReservations.Contains(existingReservations.FirstOrDefault(r => r.QueueNumber == nextQueueNumber)))
+            if (existingReservations.Any(r => r.LoanerId == loanerId))
             {
-                throw new InvalidOperationException("Queue number already exists for this item.");
+                throw new InvalidOperationException(
+                    "Loaner has already reserved this item.");
             }
+
+            var nextQueueNumber = existingReservations.Count + 1;
 
             if (nextQueueNumber > 100)
             {
                 throw new InvalidOperationException("Reservation queue is full.");
             }
 
-            if (existingReservations.Contains(existingReservations.FirstOrDefault(r => r.LoanerId == loanerId)))
+            if (existingReservations.Any(r => r.QueueNumber == nextQueueNumber))
             {
-                throw new InvalidOperationException("Loaner has already reserved this item.");
+                throw new InvalidOperationException(
+                    "Queue number already exists for this item.");
             }
 
             return nextQueueNumber;
@@ -170,14 +182,5 @@ namespace LibraryAPI.Services
             throw new KeyNotFoundException("This is not a valid value");
         }
 
-        private async Task<bool> UserHasUnpaidFines(int loanerId)
-        {
-            var unpaidFines = await _reservationRepository.GetUnpaidFinesByLoanerId(loanerId);
-            if (unpaidFines != null && unpaidFines.Count > 0)
-            {
-                return true;
-            }
-            return false;
-        }
     }
 }

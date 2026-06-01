@@ -42,10 +42,16 @@ namespace LibraryAPI.Controllers
             }
 
             var databaseHelper = new TestDatabaseHelper(connectionString);
+            try
+            {
+                await databaseHelper.ResetAndSeedDatabaseAsync();
 
-            await databaseHelper.ResetAndSeedDatabaseAsync();
-
-            return Ok(new { message = "Test database reset and seeded." });
+                return Ok(new { message = "Test database reset and seeded." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error resetting database.", details = ex.Message });
+            }
         }
     }
 }
