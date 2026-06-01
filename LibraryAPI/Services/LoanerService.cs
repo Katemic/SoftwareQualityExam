@@ -49,7 +49,7 @@ namespace LibraryAPI.Services
             if (firstName.Length < 2 || firstName.Length > 100)
                 throw new ArgumentException("First name must be between 2 and 100 characters.");
 
-            if (!Regex.IsMatch(firstName, @"^[A-Za-zÀ-ÿ' -]+$"))
+            if (!Regex.IsMatch(firstName, @"^[A-Za-zÀ-ÿ' -]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("First name contains invalid characters.");
 
             if (string.IsNullOrWhiteSpace(lastName))
