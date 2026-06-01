@@ -29,7 +29,7 @@ namespace LibraryTestProject.UnitTests
                 Amount = amount
             };
 
-            var loan = CreateLoan(dto.LoanId, DateTime.Now.AddDays(-1));
+            var loan = CreateLoan(dto.LoanId, "active");
 
             loanRepositoryMock
                 .Setup(x => x.GetByIdAsync(dto.LoanId))
@@ -59,7 +59,7 @@ namespace LibraryTestProject.UnitTests
                 Amount = amount
             };
 
-            var loan = CreateLoan(dto.LoanId, DateTime.Now.AddDays(-1));
+            var loan = CreateLoan(dto.LoanId, "overdue");
 
             SetupValidFineCreation(
                 fineRepositoryMock,
@@ -123,7 +123,7 @@ namespace LibraryTestProject.UnitTests
                 Amount = 20
             };
 
-            var loan = CreateLoan(dto.LoanId, DateTime.Now.AddDays(-1));
+            var loan = CreateLoan(dto.LoanId, "overdue");
 
             SetupValidFineCreation(
                 fineRepositoryMock,
@@ -155,7 +155,7 @@ namespace LibraryTestProject.UnitTests
                 Amount = 20
             };
 
-            var loan = CreateLoan(dto.LoanId, DateTime.Now.AddDays(-1));
+            var loan = CreateLoan(dto.LoanId, "overdue");
 
             SetupValidFineCreation(
                 fineRepositoryMock,
@@ -246,7 +246,7 @@ namespace LibraryTestProject.UnitTests
                 Amount = 20
             };
 
-            var loan = CreateLoan(dto.LoanId, DateTime.Now.AddDays(-1));
+            var loan = CreateLoan(dto.LoanId, "overdue");
 
             SetupValidFineCreation(
                 fineRepositoryMock,
@@ -284,6 +284,164 @@ namespace LibraryTestProject.UnitTests
                 () => service.PayFineAsync(fine.Id));
         }
 
+
+        // White-box statement coverage test:
+        // Invalid branch: loan does not exist.
+        // Expected result: fine cannot be created.
+        [TestMethod]
+        public async Task CreateAsync_WhenLoanNotFound_ThrowsException()
+        {
+            // Arrange
+            var fineRepositoryMock = new Mock<IFineRepository>();
+            var loanRepositoryMock = new Mock<ILoanRepository>();
+            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
+
+            var dto = new CreateFineDto
+            {
+                LoanId = 999,
+                Amount = 20
+            };
+
+            loanRepositoryMock
+                .Setup(x => x.GetByIdAsync(dto.LoanId))
+                .ReturnsAsync((Loan?)null);
+
+            // Act + Assert
+            var exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
+                () => service.CreateAsync(dto));
+
+            Assert.AreEqual("Loan not found.", exception.Message);
+        }
+
+        // White-box statement coverage test:
+        // Invalid branch: loan exists, but is not overdue.
+        // Expected result: fine cannot be created.
+        [TestMethod]
+        public async Task CreateAsync_WhenLoanIsNotOverdue_ThrowsException()
+        {
+            // Arrange
+            var fineRepositoryMock = new Mock<IFineRepository>();
+            var loanRepositoryMock = new Mock<ILoanRepository>();
+            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
+
+            var dto = new CreateFineDto
+            {
+                LoanId = 1,
+                Amount = 20
+            };
+
+            var loan = CreateLoan(dto.LoanId, "active");
+
+            loanRepositoryMock
+                .Setup(x => x.GetByIdAsync(dto.LoanId))
+                .ReturnsAsync(loan);
+
+            // Act + Assert
+            var exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
+                () => service.CreateAsync(dto));
+
+            Assert.AreEqual("Loan is not overdue.", exception.Message);
+        }
+
+        // White-box statement coverage test:
+        // Invalid branch: loan already has an unpaid fine.
+        // Expected result: another unpaid fine cannot be created for the same loan.
+        [TestMethod]
+        public async Task CreateAsync_WhenLoanAlreadyHasUnpaidFine_ThrowsException()
+        {
+            // Arrange
+            var fineRepositoryMock = new Mock<IFineRepository>();
+            var loanRepositoryMock = new Mock<ILoanRepository>();
+            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
+
+            var dto = new CreateFineDto
+            {
+                LoanId = 1,
+                Amount = 20
+            };
+
+            var loan = CreateLoan(dto.LoanId, "overdue");
+
+            loanRepositoryMock
+                .Setup(x => x.GetByIdAsync(dto.LoanId))
+                .ReturnsAsync(loan);
+
+            fineRepositoryMock
+                .Setup(x => x.GetByLoanIdAsync(dto.LoanId))
+                .ReturnsAsync(new List<Fine>
+                {
+            CreateFine(id: 1, loanId: dto.LoanId, status: "unpaid")
+                });
+
+            // Act + Assert
+            var exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
+                () => service.CreateAsync(dto));
+
+            Assert.AreEqual("Loan already has a fine.", exception.Message);
+        }
+
+        // White-box statement coverage test:
+        // Valid branch: loan has an old paid fine.
+        // Expected result: new unpaid fine can still be created.
+        [TestMethod]
+        public async Task CreateAsync_WhenLoanAlreadyHasPaidFine_ThrowsException()
+        {
+            // Arrange
+            var fineRepositoryMock = new Mock<IFineRepository>();
+            var loanRepositoryMock = new Mock<ILoanRepository>();
+            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
+
+            var dto = new CreateFineDto
+            {
+                LoanId = 1,
+                Amount = 20
+            };
+
+            var loan = CreateLoan(dto.LoanId, "overdue");
+
+            loanRepositoryMock
+                .Setup(x => x.GetByIdAsync(dto.LoanId))
+                .ReturnsAsync(loan);
+
+            fineRepositoryMock
+                .Setup(x => x.GetByLoanIdAsync(dto.LoanId))
+                .ReturnsAsync(new List<Fine>
+                {
+            CreateFine(id: 1, loanId: dto.LoanId, status: "paid")
+                });
+
+            // Act + Assert
+            var exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
+                () => service.CreateAsync(dto));
+
+            Assert.AreEqual("Loan already has a fine.", exception.Message);
+        }
+
+
+        // White-box statement coverage test:
+        // Invalid branch: fine does not exist.
+        // Expected result: fine cannot be paid.
+        [TestMethod]
+        public async Task PayFineAsync_WhenFineNotFound_ThrowsException()
+        {
+            // Arrange
+            var fineRepositoryMock = new Mock<IFineRepository>();
+            var loanRepositoryMock = new Mock<ILoanRepository>();
+            var service = CreateService(fineRepositoryMock, loanRepositoryMock);
+
+            int fineId = 999;
+
+            fineRepositoryMock
+                .Setup(x => x.GetByIdAsync(fineId))
+                .ReturnsAsync((Fine?)null);
+
+            // Act + Assert
+            var exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
+                () => service.PayFineAsync(fineId));
+
+            Assert.AreEqual("Fine not found.", exception.Message);
+        }
+
         private static FineService CreateService(
             Mock<IFineRepository> fineRepositoryMock,
             Mock<ILoanRepository> loanRepositoryMock)
@@ -293,12 +451,12 @@ namespace LibraryTestProject.UnitTests
                 loanRepositoryMock.Object);
         }
 
-        private static Loan CreateLoan(int id, DateTime dueDate)
+        private static Loan CreateLoan(int id, string status)
         {
             return new Loan
             {
                 Id = id,
-                DueDate = dueDate
+                Status = status
             };
         }
 

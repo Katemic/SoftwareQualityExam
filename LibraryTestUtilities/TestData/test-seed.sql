@@ -85,7 +85,7 @@ INSERT INTO `inventory` (`id`, `item_id`, `status`, `barcode`, `placement`) VALU
 INSERT INTO `loan`
 (`id`, `loan_date`, `due_date`, `return_date`, `status`, `loaner_id`, `inventory_id`) VALUES
 (1, '2026-02-10 10:00:00', '2026-02-24 10:00:00', NULL, 'overdue', 1, 2),
-(2, '2026-02-15 12:00:00', '2026-02-28 12:00:00', NULL, 'active', 2, 1),
+(2, '2026-02-15 12:00:00', '2026-02-28 12:00:00', NULL, 'overdue', 2, 1),
 (21, '2026-03-01 10:00:00', '2026-03-15 10:00:00', NULL, 'active', 11, 31),
 (22, '2026-03-02 10:00:00', '2026-03-16 10:00:00', NULL, 'active', 11, 32),
 (23, '2026-03-03 10:00:00', '2026-03-17 10:00:00', NULL, 'active', 11, 33),

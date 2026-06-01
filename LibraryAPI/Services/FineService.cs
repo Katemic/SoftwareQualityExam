@@ -54,13 +54,7 @@ namespace LibraryAPI.Services
                     "Fine amount must be greater than 0.");
             }
 
-            DateTime dueDate =
-                Convert.ToDateTime(loan.DueDate);
-
-            var daysOverdue =
-                (DateTime.Now.Date - dueDate.Date).Days;
-
-            if (daysOverdue <= 0)
+            if (loan.Status != "overdue")
             {
                 throw new InvalidOperationException(
                     "Loan is not overdue.");
@@ -69,10 +63,10 @@ namespace LibraryAPI.Services
             var existingFines =
                 await _fineRepository.GetByLoanIdAsync(dto.LoanId);
 
-            if (existingFines.Any(f => f.Status == "unpaid"))
+            if (existingFines.Any())
             {
                 throw new InvalidOperationException(
-                    "Loan already has an unpaid fine.");
+                    "Loan already has a fine.");
             }
 
             var fine = new Fine
