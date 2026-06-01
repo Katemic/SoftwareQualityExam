@@ -104,9 +104,7 @@ namespace LibraryAPI.Services
             if (!subscriber.All(char.IsDigit))
                 throw new ArgumentException("Subscriber number must contain only digits.");
 
-            int totalDigits = countryCode.Length + subscriber.Length;
-
-            if (totalDigits < 7 || totalDigits > 15)
+            if (subscriber.Length < 7 || subscriber.Length > 15)
                 throw new ArgumentException("Phone number must contain between 7 and 15 digits.");
 
             if (subscriber.All(c => c == '0'))
@@ -117,8 +115,8 @@ namespace LibraryAPI.Services
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email is required.");
 
-            if (email.Length < 6 || email.Length > 254)
-                throw new ArgumentException("Email length is invalid.");
+            if (email.Length < 6)
+                throw new ArgumentException("Email is too small");
 
             if (email.Count(c => c == '@') != 1)
                 throw new ArgumentException("Email must contain exactly one '@'.");
@@ -152,22 +150,19 @@ namespace LibraryAPI.Services
             if (local.Length < 1 || local.Length > 64)
                 throw new ArgumentException("Local part length is invalid.");
 
-            if (domain.Length < 4 || domain.Length > 253)
+            if (domain.Length <= 3 || domain.Length >= 255)
                 throw new ArgumentException("Domain part length is invalid.");
+
+            if (email.Length > 254)
+            {
+                throw new ArgumentException("Email length exceeds maximum allowed.");
+            }
 
             if (!Regex.IsMatch(local, @"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("Local part contains invalid characters.");
 
             if (!Regex.IsMatch(domain, @"^[A-Za-z0-9.-]+$", RegexOptions.None, RegexTimeout))
                 throw new ArgumentException("Domain contains invalid characters.");
-
-            var labels = domain.Split('.');
-
-            foreach (var label in labels)
-            {
-                if (string.IsNullOrWhiteSpace(label))
-                    throw new ArgumentException("Invalid label.");
-            }
         }
         private void ValidatePassword(string? password)
         {
