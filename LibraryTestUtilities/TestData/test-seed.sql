@@ -51,18 +51,18 @@ INSERT INTO `tag` (`id`, `name`) VALUES
 (10, 'Short Sessions');
 
 INSERT INTO `loaner` (`id`, `first_name`, `last_name`, `cpr`, `tlf`, `email`, `password`) VALUES
-(1, 'Mads', 'Jensen', '010190-1234', '12345678', 'mads.jensen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(2, 'Sofie', 'Hansen', '120295-5678', '87654321', 'sofie.hansen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(3, 'Lars', 'Nielsen', '050388-9999', '11223344', 'lars.nielsen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(4, 'Emma', 'Pedersen', '220498-2222', '22334455', 'emma.pedersen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(5, 'Noah', 'Christensen', '300101-3333', '33445566', 'noah.christensen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(11, 'Three', 'Loans', '010101-1111', '11111111', 'three.loans@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(20, 'Freja', 'Larsen', '120398-4567', '28123456', 'freja.larsen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(21, 'Mikkel', 'Østergaard', '031295-8821', '50443322', 'mikkel.ostergaard@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(30, 'Anna', 'Madsen', '140497-3321', '22334455', 'anna.madsen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(31, 'Jonas', 'Kristoffersen', '250699-7712', '55667788', 'jonas.kristoffersen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(32, 'Ida', 'Holm', '090201-1198', '99887766', 'ida.holm@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog=='),
-(33, 'Jens', 'Laursen', '010105-7835', '99887766', 'jens.laursen@example.com', 'AQAAAAIAAYagAAAAEDyvWjZoUaVWqxsNTGAzVqDgHK1mttifvSz50rPGAdp+RqtLml6W/whv6JumbP6uog==');
+(1, 'Mads', 'Jensen', '0101901234', '+45 12345678', 'mads.jensen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(2, 'Sofie', 'Hansen', '1202955678', '+45 12345678', 'sofie.hansen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(3, 'Lars', 'Nielsen', '0503889999', '+45 12345678', 'lars.nielsen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(4, 'Emma', 'Pedersen', '2204982222', '+45 12345678', 'emma.pedersen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(5, 'Noah', 'Christensen', '3001013333', '+45 12345678', 'noah.christensen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(11, 'Three', 'Loans', '0101011111', '+45 12345678', 'three.loans@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(20, 'Freja', 'Larsen', '1203984567', '+45 12345678', 'freja.larsen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(21, 'Mikkel', 'Østergaard', '0312958821', '+45 12345678', 'mikkel.ostergaard@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(30, 'Anna', 'Madsen', '1404973321', '+45 12345678', 'anna.madsen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(31, 'Jonas', 'Kristoffersen', '2506997712', '+45 12345678', 'jonas.kristoffersen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(32, 'Ida', 'Holm', '0902011198', '+45 12345678', 'ida.holm@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA=='),
+(33, 'Jens', 'Laursen', '0101057835', '+45 12345678', 'jens.laursen@example.com', 'AQAAAAIAAYagAAAAEM4wS5PH2Etv0nCJOYdsML8ygSh8S2dim9TXWEa9USwmxDp2X7WyarquNUfcBjxamA==');
 
 INSERT INTO `item`
 (`id`, `name`, `release_year`, `description`, `review_summary`, `media_type`, `image`, `language_id`, `publisher_id`, `average_stars`) VALUES
@@ -85,7 +85,7 @@ INSERT INTO `inventory` (`id`, `item_id`, `status`, `barcode`, `placement`) VALU
 INSERT INTO `loan`
 (`id`, `loan_date`, `due_date`, `return_date`, `status`, `loaner_id`, `inventory_id`) VALUES
 (1, '2026-02-10 10:00:00', '2026-02-24 10:00:00', NULL, 'overdue', 1, 2),
-(2, '2026-02-15 12:00:00', '2026-02-28 12:00:00', NULL, 'active', 2, 1),
+(2, '2026-02-15 12:00:00', '2026-02-28 12:00:00', NULL, 'overdue', 2, 1),
 (21, '2026-03-01 10:00:00', '2026-03-15 10:00:00', NULL, 'active', 11, 31),
 (22, '2026-03-02 10:00:00', '2026-03-16 10:00:00', NULL, 'active', 11, 32),
 (23, '2026-03-03 10:00:00', '2026-03-17 10:00:00', NULL, 'active', 11, 33),

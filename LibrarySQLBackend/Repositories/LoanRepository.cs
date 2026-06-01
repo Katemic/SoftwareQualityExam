@@ -39,11 +39,26 @@ namespace LibrarySQLBackend.Repositories
 
             inventory.Status = "loaned out";
 
-            _context.Loans.Add(loan);
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+        INSERT INTO loan 
+            (loan_date, due_date, return_date, status, loaner_id, inventory_id)
+        VALUES 
+            (CURRENT_TIMESTAMP(), DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL 14 DAY), NULL, {loan.Status}, {loan.LoanerId}, {loan.InventoryId});
+    ");
 
             await _context.SaveChangesAsync();
 
-            return await GetByIdAsync(loan.Id)
+            var createdLoanId = await _context.Loans
+                .Where(l =>
+                    l.LoanerId == loan.LoanerId &&
+                    l.InventoryId == loan.InventoryId &&
+                    l.ReturnDate == null &&
+                    l.Status == loan.Status)
+                .OrderByDescending(l => l.Id)
+                .Select(l => l.Id)
+                .FirstAsync();
+
+            return await GetByIdAsync(createdLoanId)
                    ?? throw new InvalidOperationException("Loan could not be created.");
         }
 
@@ -56,8 +71,13 @@ namespace LibrarySQLBackend.Repositories
             if (loan == null)
                 throw new InvalidOperationException("The loan was not found while returning the loan.");
 
-            loan.ReturnDate = DateTime.Now;
-            loan.Status = "returned";
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+        UPDATE loan
+        SET 
+            return_date = CURRENT_TIMESTAMP(),
+            status = 'returned'
+        WHERE id = {loanId};
+    ");
 
             if (loan.Inventory != null)
             {
@@ -65,6 +85,8 @@ namespace LibrarySQLBackend.Repositories
             }
 
             await _context.SaveChangesAsync();
+
+            await _context.Entry(loan).ReloadAsync();
         }
 
         public async Task<bool> HasUnpaidFineAsync(int loanerId)

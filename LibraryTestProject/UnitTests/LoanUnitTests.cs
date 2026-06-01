@@ -298,69 +298,6 @@ public class LoanUnitTests
             Times.Once);
     }
 
-    // Black-box test:
-    // Loan date equivalence partition.
-    // Input value: current day.
-    // Expected result: valid.
-    [TestMethod]
-    public async Task CreateLoanAsync_AllRulesAreValid_SetsLoanDateToCurrentDate()
-    {
-        // Arrange
-        var loanRepositoryMock = new Mock<ILoanRepository>();
-        var inventoryRepositoryMock = new Mock<IInventoryRepository>();
-        var loanerRepositoryMock = new Mock<ILoanerRepository>();
-
-        var service = CreateService(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock);
-
-        var dto = CreateLoanDto();
-
-        SetupValidLoanCreation(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock,
-            dto);
-
-        // Act
-        var result = await service.CreateLoanAsync(dto);
-
-        // Assert
-        Assert.AreEqual(DateTime.Now.Date, result.LoanDate?.Date);
-    }
-
-    // Black-box test:
-    // Due date equivalence partition.
-    // Input value: loan date + 14.
-    // Expected result: valid.
-    [TestMethod]
-    public async Task CreateLoanAsync_AllRulesAreValid_SetsDueDateToLoanDatePlusFourteenDays()
-    {
-        // Arrange
-        var loanRepositoryMock = new Mock<ILoanRepository>();
-        var inventoryRepositoryMock = new Mock<IInventoryRepository>();
-        var loanerRepositoryMock = new Mock<ILoanerRepository>();
-
-        var service = CreateService(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock);
-
-        var dto = CreateLoanDto();
-
-        SetupValidLoanCreation(
-            loanRepositoryMock,
-            inventoryRepositoryMock,
-            loanerRepositoryMock,
-            dto);
-
-        // Act
-        var result = await service.CreateLoanAsync(dto);
-
-        // Assert
-        Assert.AreEqual(result.LoanDate?.AddDays(14).Date, result.DueDate?.Date);
-    }
 
     // Black-box test:
     // Return date equivalence partition.
@@ -624,8 +561,6 @@ public class LoanUnitTests
             Id = id,
             LoanerId = loanerId,
             InventoryId = inventoryId,
-            LoanDate = DateTime.Now.AddDays(-5),
-            DueDate = DateTime.Now.AddDays(9),
             ReturnDate = returnDate,
             Status = status
         };
