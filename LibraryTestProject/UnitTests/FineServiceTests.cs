@@ -5,7 +5,7 @@ using LibrarySQLBackend.Repositories.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace LibraryTestProject.Services
+namespace LibraryTestProject.UnitTests
 {
     [TestClass]
     public class FineServiceTests

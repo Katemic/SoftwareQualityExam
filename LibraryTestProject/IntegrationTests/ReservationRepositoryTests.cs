@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace LibraryTestProject.IntegrationTests.Reservations
+namespace LibraryTestProject.IntegrationTests
 {
     [TestClass]
     [DoNotParallelize]
@@ -58,7 +58,7 @@ namespace LibraryTestProject.IntegrationTests.Reservations
 
             var saved = await context.Reservations.FirstAsync(x => x.ItemId == 1 && x.LoanerId == loanerId);
 
-            var expectedQueue = (await context.Reservations.CountAsync(x => x.ItemId == 1));
+            var expectedQueue = await context.Reservations.CountAsync(x => x.ItemId == 1);
 
             // Assert
             Assert.AreEqual(expectedQueue, saved.QueueNumber);

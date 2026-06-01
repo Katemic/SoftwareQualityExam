@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace LibraryTestProject.Integration
+namespace LibraryTestProject.IntegrationTests
 {
     [TestClass]
     [DoNotParallelize]

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Moq;
 
-namespace LibraryTestProject;
+namespace LibraryTestProject.UnitTests;
 
 [TestClass]
 public class LoanerTests

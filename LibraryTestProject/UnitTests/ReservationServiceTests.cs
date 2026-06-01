@@ -5,7 +5,7 @@ using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories.Interfaces;
 using Moq;
 
-namespace LibraryTestProject.Services
+namespace LibraryTestProject.UnitTests
 {
     [TestClass]
     public sealed class ReservationServiceTests

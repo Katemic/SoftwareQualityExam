@@ -4,7 +4,7 @@ using LibrarySQLBackend.Models;
 using LibrarySQLBackend.Repositories.Interfaces;
 using Moq;
 
-namespace LibraryTestProject;
+namespace LibraryTestProject.UnitTests;
 
 [TestClass]
 public class LoanUnitTests
