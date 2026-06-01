@@ -48,6 +48,12 @@ namespace LibraryAPI.Services
             if (loan == null)
                 throw new InvalidOperationException("Loan not found.");
 
+            if (dto.Amount <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Fine amount must be greater than 0.");
+            }
+
             DateTime dueDate =
                 Convert.ToDateTime(loan.DueDate);
 
@@ -72,7 +78,7 @@ namespace LibraryAPI.Services
             var fine = new Fine
             {
                 LoanId = dto.LoanId,
-                Amount = 20,
+                Amount = dto.Amount,
                 Status = "unpaid",
                 CreatedDate = DateTime.Now,
             };
