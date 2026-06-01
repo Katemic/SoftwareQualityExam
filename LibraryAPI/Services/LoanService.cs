@@ -142,24 +142,5 @@ namespace LibraryAPI.Services
             };
         }
 
-        private static string GetFriendlyDatabaseError(string message)
-        {
-            if (message.Contains("Copy does not exist"))
-                return "The selected inventory copy does not exist.";
-
-            if (message.Contains("Copy is not available"))
-                return "The selected inventory copy is not available.";
-
-            if (message.Contains("maximum"))
-                return "The loaner has reached the maximum number of active or overdue loans.";
-
-            if (message.Contains("Loan not found"))
-                return "The loan was not found.";
-
-            if (message.Contains("Loan already returned"))
-                return "The loan has already been returned.";
-
-            return message;
-        }
     }
 }
