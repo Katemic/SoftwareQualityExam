@@ -35,10 +35,15 @@ namespace LibraryTestProject.IntegrationTests
             await databaseHelper.ResetAndSeedDatabaseAsync();
         }
 
-        // Integration test - happy path:
+        // Integration test - happy path / decision table Rule 4:
         // Tests that FineService, FineRepository, LoanRepository,
         // AppDbContext and MySQL work together.
-        // Scenario: a seeded loan without a fine gets a new unpaid fine saved in the database.
+        //
+        // Scenario:
+        // The loan exists, the loan is overdue,
+        // and the loan does not already have a fine.
+        // Expected result:
+        // A new fine is saved in the database with status "unpaid".
         [TestMethod]
         public async Task CreateAsync_LoanWithoutFine_SavesFineInDatabase()
         {
@@ -70,9 +75,9 @@ namespace LibraryTestProject.IntegrationTests
         // AppDbContext and MySQL work together.
         //
         // Scenario:
-        // An unpaid fine already exists in the database.
-        // The fine is paid.
-        // The fine status is updated to paid in the database.
+        // An unpaid fine exists in the database.
+        // Expected result:
+        // The fine can be paid, and its status is updated to "paid" in the database.
         [TestMethod]
         public async Task PayFineAsync_UnpaidFine_UpdatesFineStatusInDatabase()
         {

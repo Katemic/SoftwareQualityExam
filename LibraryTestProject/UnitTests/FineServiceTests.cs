@@ -10,9 +10,9 @@ namespace LibraryTestProject.UnitTests
     [TestClass]
     public class FineServiceTests
     {
-        // Black-box boundary test:
-        // Invalid partition: fine amount less than or equal to 0.
-        // Expected result: fine cannot be created.
+        // Black-box boundary value test:
+        // Invalid input: fine amount is on or below the lower boundary.
+        // Expected result: fine creation is rejected.
         [DataTestMethod]
         [DataRow(-1)]
         [DataRow(0)]
@@ -40,9 +40,11 @@ namespace LibraryTestProject.UnitTests
                 () => service.CreateAsync(dto));
         }
 
-        // Black-box boundary test:
-        // Valid partition: amount greater than 0.
-        // Expected result: fine is created with specified amount.
+        // Black-box boundary value test / decision table Rule 4:
+        // Valid input: fine amount is above the lower boundary.
+        // Valid fine scenario: the loan exists, the loan is overdue,
+        // and the loan does not already have a fine.
+        // Expected result: fine is created with the specified amount.
         [DataTestMethod]
         [DataRow(1)]
         [DataRow(2)]
@@ -75,7 +77,9 @@ namespace LibraryTestProject.UnitTests
         }
 
         // Black-box format test:
-        // Valid partition: amount is a decimal number greater than 0.
+        // Valid input: fine amount is a decimal number.
+        // Business rules are satisfied: the loan exists, is overdue,
+        // and does not already have a fine.
         // Expected result: fine is created with the specified decimal amount.
         [TestMethod]
         public async Task CreateAsync_WhenAmountIsDecimal_CreatesFine()
@@ -108,8 +112,8 @@ namespace LibraryTestProject.UnitTests
 
 
         // Black-box equivalence partition test:
-        // Valid partition: fine is unpaid when created.
-        // Expected result: status is set to unpaid.
+        // Valid outcome: a newly created fine receives the default unpaid status.
+        // Expected result: fine status is set to "unpaid".
         [TestMethod]
         public async Task CreateAsync_WhenFineCreated_StatusIsUnpaid()
         {
@@ -139,7 +143,9 @@ namespace LibraryTestProject.UnitTests
             Assert.AreEqual("unpaid", result.Status);
         }
 
-        
+        // Black-box business rule test:
+        // Valid scenario: an existing unpaid fine can be paid.
+        // Expected result: fine status is changed to "paid".
         [TestMethod]
         public async Task PayFineAsync_WhenFineIsUnpaid_SetsStatusToPaid()
         {
@@ -166,8 +172,8 @@ namespace LibraryTestProject.UnitTests
         }
 
         // Black-box business rule test:
-        // Invalid partition: fine is already paid.
-        // Expected result: fine cannot be paid twice.
+        // Invalid scenario: the fine has already been paid.
+        // Expected result: payment is rejected because a fine can only be paid once.
         [TestMethod]
         public async Task PayFineAsync_WhenFineAlreadyPaid_ThrowsException()
         {
@@ -189,9 +195,10 @@ namespace LibraryTestProject.UnitTests
         }
 
 
-        // White-box statement coverage test:
-        // Invalid branch: loan does not exist.
-        // Expected result: fine cannot be created.
+        // Black-box decision table test:
+        // Rule 1: the loan does not exist.
+        // Expected result: fine creation is rejected because a fine can only
+        // be given for an existing loan.
         [TestMethod]
         public async Task CreateAsync_WhenLoanNotFound_ThrowsException()
         {
@@ -217,9 +224,9 @@ namespace LibraryTestProject.UnitTests
             Assert.AreEqual("Loan not found.", exception.Message);
         }
 
-        // White-box statement coverage test:
-        // Invalid branch: loan exists, but is not overdue.
-        // Expected result: fine cannot be created.
+        // Black-box decision table test:
+        // Rule 2: the loan exists, but the loan is not overdue.
+        // Expected result: the loaner cannot receive a fine.
         [TestMethod]
         public async Task CreateAsync_WhenLoanIsNotOverdue_ThrowsException()
         {
@@ -247,9 +254,10 @@ namespace LibraryTestProject.UnitTests
             Assert.AreEqual("Loan is not overdue.", exception.Message);
         }
 
-        // White-box statement coverage test:
-        // Invalid branch: loan already has an unpaid fine.
-        // Expected result: another unpaid fine cannot be created for the same loan.
+        // Black-box decision table test:
+        // Rule 3: the loan exists and is overdue,
+        // but the loan already has an unpaid fine.
+        // Expected result: another fine cannot be created for the same loan.
         [TestMethod]
         public async Task CreateAsync_WhenLoanAlreadyHasUnpaidFine_ThrowsException()
         {
@@ -284,9 +292,11 @@ namespace LibraryTestProject.UnitTests
             Assert.AreEqual("Loan already has a fine.", exception.Message);
         }
 
-        // White-box statement coverage test:
-        // Valid branch: loan has an old paid fine.
-        // Expected result: new unpaid fine can still be created.
+        // Black-box decision table test:
+        // Rule 3: the loan exists and is overdue,
+        // but the loan already has a paid fine.
+        // Expected result: another fine cannot be created for the same loan,
+        // because a loan can only have one fine regardless of payment status.
         [TestMethod]
         public async Task CreateAsync_WhenLoanAlreadyHasPaidFine_ThrowsException()
         {
@@ -323,8 +333,8 @@ namespace LibraryTestProject.UnitTests
 
 
         // White-box statement coverage test:
-        // Invalid branch: fine does not exist.
-        // Expected result: fine cannot be paid.
+        // Invalid branch: the fine lookup returns null.
+        // Expected result: payment is rejected with "Fine not found."
         [TestMethod]
         public async Task PayFineAsync_WhenFineNotFound_ThrowsException()
         {
