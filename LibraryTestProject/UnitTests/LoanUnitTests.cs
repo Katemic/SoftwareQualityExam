@@ -110,7 +110,7 @@ public class LoanUnitTests
     // User is logged in: yes.
     // Item is available: yes.
     // User has unpaid fine: yes.
-    // Expected result: loan creation is rejected.
+    // Expected result: loan creation is rejected!
     [TestMethod]
     public async Task CreateLoanAsync_LoanerHasUnpaidFine_ThrowsException()
     {
