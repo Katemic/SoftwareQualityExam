@@ -228,7 +228,7 @@ public class LoanUnitTests
         loanRepositoryMock
             .Setup(x => x.HasOverdueLoanAsync(
                 dto.LoanerId))
-            .ReturnsAsync(true); //make true again
+            .ReturnsAsync(false); //make true again
 
         // Act + Assert
         await Assert.ThrowsExceptionAsync<InvalidOperationException>(
