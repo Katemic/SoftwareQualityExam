@@ -55,7 +55,7 @@ namespace LibraryAPI.Services
             if (string.IsNullOrWhiteSpace(lastName))
                 throw new ArgumentException("Last name is required.");
 
-            if (lastName.Length < 2 || lastName.Length > 100)
+            if (lastName.Length < 2 || lastName.Length > 1)
                 throw new ArgumentException("Last name must be between 2 and 100 characters.");
 
             if (!Regex.IsMatch(lastName, @"^[A-Za-zÀ-ÿ' -]+$", RegexOptions.None, RegexTimeout))
